@@ -41,8 +41,8 @@ source = ColumnDataSource(homicide_data)
 p = figure(
     x_axis_type="datetime",
     title="Homicide Data in Western Australia",
-    plot_width=800,
-    plot_height=400,
+    width=800,
+    height=400,
     x_axis_label="Month and Year",
     y_axis_label="Number of Cases",
 )
