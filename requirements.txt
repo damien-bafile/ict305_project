@@ -1,6 +1,6 @@
 streamlit==1.38
 requests
-openpyxl
+openpyxl==2.4.3
 ipython
 pandas
 bokeh
