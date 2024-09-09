@@ -1,0 +1,5 @@
+python=3.11
+streamlit=1.38
+requests
+openpyxl
+ipython
