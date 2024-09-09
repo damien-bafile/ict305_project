@@ -2,3 +2,6 @@ streamlit==1.38
 requests
 openpyxl
 ipython
+pandas
+bokem
+openpyxl
