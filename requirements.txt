@@ -3,5 +3,5 @@ requests
 openpyxl
 ipython
 pandas
-bokem
+bokeh
 openpyxl
