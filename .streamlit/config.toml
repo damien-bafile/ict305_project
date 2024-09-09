@@ -1,0 +1,14 @@
+
+# Streamlit Theme Config: Latte for light mode and Frappe for dark mode
+
+[theme]
+base = "light"
+primaryColor = "#7287FD"          # Primary color for Latte
+backgroundColor = "#EFF1F5"       # Background color for Latte
+secondaryBackgroundColor = "#E6E9EF"  # Secondary background for contrast
+textColor = "#4C4F69"             # Text color for Latte
+font = "sans serif"               # Font style
+errorColor = "#DC8A78"            # Error color for Latte
+successColor = "#A6D189"          # Success color for Latte
+warningColor = "#E5C890"          # Warning color for Latte
+

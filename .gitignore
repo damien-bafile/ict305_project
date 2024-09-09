@@ -105,3 +105,4 @@ ipython_config.py
 
 # End of https://www.toptal.com/developers/gitignore/api/jupyternotebooks,jetbrains+all
 
+.DS_Store
