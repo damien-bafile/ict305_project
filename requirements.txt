@@ -1,6 +1,5 @@
 streamlit==1.38
 requests
-openpyx
 ipython
 pandas
 bokeh==2.4.3
