@@ -4,7 +4,7 @@ from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 
 
-@st.cache
+@st.cache_data
 def load_data():
     # Load the data from the Excel file (this assumes you have the file in the same directory)
     file_path = "assets/data.xlsx"
