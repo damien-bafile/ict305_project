@@ -4,14 +4,19 @@ from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 
 
-# Load the data from the Excel file (this assumes you have the file in the same directory)
-file_path = "assets/data.xlsx"
+@st.cache
+def load_data():
+    # Load the data from the Excel file (this assumes you have the file in the same directory)
+    file_path = "assets/data.xlsx"
 
-# Load the "Western Australia" sheet, skipping metadata rows
-wa_data_clean = pd.read_excel(file_path, sheet_name="Western Australia", skiprows=6)
+    # Load the "Western Australia" sheet, skipping metadata rows
+    wa_data = pd.read_excel(file_path, sheet_name="Western Australia", skiprows=6)
+    return wa_data
 
+
+homicide_data = load_data()
 # Extract relevant homicide columns
-homicide_data = wa_data_clean[
+homicide_data = homicide_data[
     ["Unnamed: 0", "Homicide", "Unnamed: 2", "Unnamed: 3", "Unnamed: 4", "Unnamed: 5"]
 ]
 homicide_data.columns = [
