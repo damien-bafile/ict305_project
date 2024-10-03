@@ -24,19 +24,35 @@ about_page = st.Page(
     default=True,
 )
 
-bokem_homicide_test_page = st.Page(
-    page="views/bokem_homicide_test.py", title="Test Homicide Bokem Graph", icon="📈"
+crime_over_population = st.Page(
+    page="views/crime_over_population.py", title="Test Homicide Bokem Graph", icon="📈"
+)
+
+crime_over_time = st.Page(
+    page="views/crime_over_time.py",
+    title="Crime Over Time",
 )
 
 metro_vs_regional_page = st.Page(
     page="views/metro_vs_regional.py",
     title="Metro vs Regional Crime",
 )
+
+entertainment_page = st.Page(
+    page="views/entertainment_crime.py",
+    title="Entertainment",
+)
+
 # --- NAVIGATION SETUP ---
 pg = st.navigation(
     {
         "Info": [about_page],
-        "Visualizations": [bokem_homicide_test_page, metro_vs_regional_page],
+        "Visualizations": [
+            crime_over_population,
+            crime_over_time,
+            metro_vs_regional_page,
+            entertainment_page,
+        ],
     }
 )
 
