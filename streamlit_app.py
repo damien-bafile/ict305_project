@@ -1,9 +1,9 @@
+import os
 from http.client import responses
 
-import streamlit as st
 import pandas as pd
-import os
 import requests
+import streamlit as st
 
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 file_path = "assets/data.xlsx"
@@ -25,22 +25,25 @@ about_page = st.Page(
 )
 
 crime_over_population = st.Page(
-    page="views/crime_over_population.py", title="Test Homicide Bokem Graph", icon="📈"
+    page="views/crime_over_population.py",
+    title="Test Homicide Bokem Graph",
+    icon="📈",
 )
 
 crime_over_time = st.Page(
-    page="views/crime_over_time.py",
-    title="Crime Over Time",
+    page="views/crime_over_time.py", title="Crime Over Time", icon="📈"
 )
 
 metro_vs_regional_page = st.Page(
     page="views/metro_vs_regional.py",
     title="Metro vs Regional Crime",
+    icon="📈",
 )
 
 entertainment_page = st.Page(
     page="views/entertainment_crime.py",
-    title="Entertainment",
+    title="Crime in Entertainment areas",
+    icon="📈",
 )
 
 # --- NAVIGATION SETUP ---
