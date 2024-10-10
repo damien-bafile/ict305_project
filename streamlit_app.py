@@ -10,7 +10,8 @@ file_path = "assets/data.xlsx"
 
 
 def download_dataset(file):
-    url = "https://www.police.wa.gov.au/Crime/~/media/5BBD428073EC4651B0C4693CD21E532C.ashx"
+    url = "https://www.wa.gov.au/media/48429/download?inline?inline="
+    # url = "https://www.police.wa.gov.au/Crime/~/media/5BBD428073EC4651B0C4693CD21E532C.ashx"
     response = requests.get(url)
     with open(file, "wb") as f:
         f.write(response.content)
