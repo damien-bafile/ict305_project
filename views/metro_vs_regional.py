@@ -1,23 +1,27 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from ..helpers import CrimeData
+import sys
+
+from helpers.CrimeData import getCrimeData
 
 
 @st.cache_data
 def load_data():
     # Load the data from the Excel file (this assumes you have the file in the same directory)
-    file_path = "assets/data.xlsx"
+    filename = 'data'
+    file_path = 'assets'
 
     # Load the "Western Australia" sheet, skipping metadata rows
     #wa_data = pd.read_excel(file_path, sheet_name="Western Australia", skiprows=6)
 
-    crimes_df = CrimeData.getCrimeData(file_path, sheet_name = 'Data')
+    crimes_df = getCrimeData(filename, file_path = file_path, sheet_name = 'Data')
     #wa_data = getCrimeData(file_path, sheet_name = 'Western Australia')
     
     return crimes_df
@@ -45,10 +49,21 @@ def getCrimeCounts(df, scale = 'District', area = None):
     
     return df
 
-crime_counts_by_region = getCrimeCounts(crimes_df, 'Region')
+crimes_df = load_data()
 
-plt.figure(figsize = (10, 6), layout = 'constrained')
-ax = sns.barplot(data = crime_counts_by_region, x = 'Count_Per_100', y = 'Crime', hue = 'Region', errorbar = None)
-ax.set_title('Total Number of Crimes in Western Australia per Region by Crime (2007-2024)');
+crimes_df['District_Name'] = crimes_df['District'].apply(lambda x: x.title().removesuffix(' District'))
 
-st.bar_chart(data = crime_counts_by_region, x = 'Count_Per_100', y = 'Crime')
+# Create scatter plot
+
+fig = px.scatter(
+    crimes_df,
+    x = 'Count_Per_100',
+    y = 'Crime',
+    animation_frame = 'Year',
+    animation_group = 'Crime',
+    color = 'District_Name',
+    width = 700,
+    height = 600,
+)
+
+st.plotly_chart(fig, use_container_width = True)

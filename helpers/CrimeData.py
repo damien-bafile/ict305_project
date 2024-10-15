@@ -15,8 +15,10 @@ from os import path
 import numpy as np
 import pandas as pd
 
-from FileIO import *
-from PopulationData import getPopulationData
+#from FileIO import *
+#from PopulationData import getPopulationData
+from helpers.FileIO import *
+from helpers.PopulationData import getPopulationData
 
 
 def loadCrimeData(filename, file_path = None, sheet_name = None):
@@ -93,7 +95,7 @@ def getCrimeData(filename, file_path = None, sheet_name = 'Data'):
     # Processed data
     writeToFile(crimes_df, f'{filename} (Processed).csv', file_path = f'{file_path}')
 
-    # 1 file sorted by date -> disrict -> crime
+    '''# 1 file sorted by date -> disrict -> crime
     crimes_df_sorted = crimes_df.sort_values(by = ['Period', 'District', 'Crime'], ignore_index = True)
     writeToFile(crimes_df_sorted, f'{filename} (All Crimes).csv', file_path = f'{file_path}/csvs')
 
@@ -101,7 +103,7 @@ def getCrimeData(filename, file_path = None, sheet_name = 'Data'):
     crimes_df_sorted = dict.fromkeys(crimes_df['Crime'].unique())
     for crime in crimes_df_sorted:
         crimes_df_sorted[crime] = crimes_df[crimes_df['Crime'] == crime].sort_values(by = ['Period', 'District'], ignore_index = True)
-        writeToFile(crimes_df_sorted[crime], f'{filename} ({crime}).csv', file_path = f'{file_path}/csvs')
+        writeToFile(crimes_df_sorted[crime], f'{filename} ({crime}).csv', file_path = f'{file_path}/csvs')'''
 
 
     return crimes_df

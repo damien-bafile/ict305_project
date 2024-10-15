@@ -14,7 +14,7 @@ Eren Stannard - 34189185
 import numpy as np
 import pandas as pd
 
-from FileIO import *
+from helpers.FileIO import *
 
 
 # Function for getting populations

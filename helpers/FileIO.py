@@ -12,7 +12,7 @@ Eren Stannard - 34189185
 from os import path
 import pandas as pd
 import json
-import geojson
+#import geojson
 
 
 # Function for reading data from a file
@@ -20,6 +20,8 @@ import geojson
 def readData(filename, file_path = None, sheet_name = 0, skiprows = None, na_values = None,
              index_col = None, usecols = None, dtype = None, header = 0):
 
+    data = None
+    
     if file_path:
         filename = path.join(file_path, filename)
 
@@ -33,9 +35,9 @@ def readData(filename, file_path = None, sheet_name = 0, skiprows = None, na_val
             data = pd.read_excel(filename, sheet_name = sheet_name, skiprows = skiprows, na_values = na_values,
                                  index_col = index_col, usecols = usecols, dtype = dtype, header = header)
             
-        elif filename.endswith('json'):
-            with open(filename, 'r') as file:
-                data = geojson.load(file)
+            '''elif filename.endswith('json'):
+                with open(filename, 'r') as file:
+                    data = geojson.load(file)'''
                                
         else:
             print("Error: Invalid file type.\n")
