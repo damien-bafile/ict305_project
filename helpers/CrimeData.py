@@ -15,8 +15,6 @@ from os import path
 import numpy as np
 import pandas as pd
 
-#from FileIO import *
-#from PopulationData import getPopulationData
 from helpers.FileIO import *
 from helpers.PopulationData import getPopulationData
 
@@ -25,6 +23,11 @@ def loadCrimeData(filename, file_path = None, sheet_name = None):
 
     if file_path:
         filename = path.join(file_path, filename)
+        
+    for ext in ['.csv', '.xlsx']:
+        if filename.endswith(ext):
+            filename = filename.removesuffix(ext)
+            break
 
     if path.isfile(f'{filename}.csv') and path.getmtime(f'{filename}.csv') >= path.getmtime(f'{filename}.xlsx'):
         df = readData(f'{filename}.csv')
@@ -47,15 +50,19 @@ def getCrimeData(filename, file_path = None, sheet_name = 'Data'):
 
     # Drop unnecessary columns
 
-    crimes_df = crimes_df.drop(columns = ['WAPOL_Hierarchy_order_Lvl1','WAPOL_Hierarchy_order_Lvl2',
-                                          'Year', 'Key', 'MonthYear1', 'prod_dte'])
+    crimes_df = crimes_df.drop(columns = [
+        'WAPOL_Hierarchy_order_Lvl1', 'WAPOL_Hierarchy_order_Lvl2',
+        'Year', 'Key', 'MonthYear1', 'prod_dte',
+    ])
 
 
     # Rename columns
 
-    crimes_df = crimes_df.rename(columns = {'Website Region': 'District',
-                                            'WAPOL_Hierarchy_Lvl2': 'Crime',
-                                            'WAPOL_Hierarchy_Lvl1': 'Sub_Crime'})
+    crimes_df = crimes_df.rename(columns = {
+        'Website Region': 'District',
+        'WAPOL_Hierarchy_Lvl2': 'Crime',
+        'WAPOL_Hierarchy_Lvl1': 'Sub_Crime',
+    })
 
 
     # Insert separate month and year columns

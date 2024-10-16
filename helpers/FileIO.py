@@ -12,7 +12,7 @@ Eren Stannard - 34189185
 from os import path
 import pandas as pd
 import json
-#import geojson
+import geojson
 
 
 # Function for reading data from a file
@@ -28,16 +28,20 @@ def readData(filename, file_path = None, sheet_name = 0, skiprows = None, na_val
     if path.isfile(filename):
 
         if filename.endswith('csv'):
-            data = pd.read_csv(filename, skiprows = skiprows, na_values = na_values, index_col = index_col,
-                               usecols = usecols, dtype = dtype, header = header, low_memory = False)
+            data = pd.read_csv(
+                filename, skiprows = skiprows, na_values = na_values, index_col = index_col,
+                usecols = usecols, dtype = dtype, header = header, low_memory = False,
+            )
 
         elif filename.endswith('xlsx'):
-            data = pd.read_excel(filename, sheet_name = sheet_name, skiprows = skiprows, na_values = na_values,
-                                 index_col = index_col, usecols = usecols, dtype = dtype, header = header)
+            data = pd.read_excel(
+                filename, sheet_name = sheet_name, skiprows = skiprows, na_values = na_values,
+                index_col = index_col, usecols = usecols, dtype = dtype, header = header,
+            )
             
-            '''elif filename.endswith('json'):
-                with open(filename, 'r') as file:
-                    data = geojson.load(file)'''
+        elif filename.endswith('json'):
+            with open(filename, 'r') as file:
+                data = geojson.load(file)
                                
         else:
             print("Error: Invalid file type.\n")
