@@ -13,6 +13,7 @@ Eren Stannard - 34189185
 
 import numpy as np
 import pandas as pd
+from zipfile import ZipFile
 
 from helpers.FileIO import *
 
@@ -52,13 +53,14 @@ def loadABSData(file_path = None, area_types = [], year = 2021, na_values = 'Z',
         dfs[i].columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in dfs[i].columns]
 
         # Census DataPacks
-        df = readData(
-            f'{year}Census_G01_WA_{i}.csv',
-            file_path = f'{file_path}/ABS_Census_DataPacks',
-            na_values = 'Z',
-            usecols = [f'{i}_CODE_{year}', 'Tot_P_P'],
-            dtype = {f'{i}_CODE_{year}': 'string'},
-        )
+        with ZipFile(f'{file_path}/ABS_Census_DataPacks/{year}_GCP_{i}_for_WA_short-header.zip') as z:
+            df = readData(
+                [name for name in z.namelist() if name.endswith(f'{year}Census_G01_WA_{i}.csv')][0],
+                file_path = f'{file_path}/ABS_Census_DataPacks/{year}_GCP_{i}_for_WA_short-header.zip',
+                na_values = 'Z',
+                usecols = [f'{i}_CODE_{year}', 'Tot_P_P'],
+                dtype = {f'{i}_CODE_{year}': 'string'},
+            )
         
         df.columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in df.columns]
 
