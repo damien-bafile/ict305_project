@@ -4,18 +4,66 @@
 ICT305: Data Visualisation and Simulation
 Group Assignment
 Group Name: Machine Masters
-Dataset Analysis: Data Exploration and Discovery
 Eren Stannard - 34189185
 '''
 
 
 # Import libraries
 
+from os import path, makedirs
 import numpy as np
 import pandas as pd
+import requests
 from zipfile import ZipFile
 
 from helpers.FileIO import *
+
+
+# Function for loading ABS data
+
+def loadABSData(file_path = '', area_types = [], year = 2021, na_values = 'Z', usecols = None, get_csv = True):
+
+    dfs = dict.fromkeys(area_types)
+
+    #downloadABSData(area_types, file_path = file_path, year = year)
+
+    for i in area_types:
+
+        # Allocation Files
+        dfs[i] = readData(
+            f'{i}_{year}_AUST.csv',
+            file_path = file_path,
+            na_values = 'Z',
+            usecols = [f'{i}_CODE_{year}', f'{i}_NAME_{year}', f'STATE_CODE_{year}'],
+            dtype = {f'{i}_CODE_{year}': 'string'},
+            get_csv = get_csv,
+        )
+        
+        dfs[i].columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in dfs[i].columns]
+
+        # Census DataPacks
+        df = readData(
+            f'{year}Census_G01_WA_{i}.csv',
+            file_path = file_path,
+            na_values = 'Z',
+            usecols = [f'{i}_CODE_{year}', 'Tot_P_P'],
+            dtype = {f'{i}_CODE_{year}': 'string'},
+            get_csv = get_csv,
+        )
+        
+        df.columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in df.columns]
+
+        # Remove code prefix to join DataFrames
+        df['CODE'] = df['CODE'].apply(lambda x: x.removeprefix(i))
+
+        # Join DataFrames
+        dfs[i] = dfs[i].join(
+            df.set_index('CODE'),
+            on = 'CODE',
+            how = 'left',
+        ).dropna(how = 'any').drop_duplicates()
+        
+    return dfs
 
 
 # Function for getting populations
@@ -33,59 +81,22 @@ def getPopulations(df, area_type_df, area_type):
     return df
 
 
-# Function for loading ABS data
+# Function for getting population data using ABS data
 
-def loadABSData(file_path = None, area_types = [], year = 2021, na_values = 'Z', usecols = None):
-
-    dfs = dict.fromkeys(area_types)
-
-    for i in area_types:
-
-        # Allocation Files
-        dfs[i] = readData(
-            f'{i}_{year}_AUST.csv',
-            file_path = f'{file_path}/ABS_Allocation_Files',
-            na_values = 'Z',
-            usecols = [f'{i}_CODE_{year}', f'{i}_NAME_{year}', f'STATE_CODE_{year}'],
-            dtype = {f'{i}_CODE_{year}': 'string'},
-        )
-        
-        dfs[i].columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in dfs[i].columns]
-
-        # Census DataPacks
-        with ZipFile(f'{file_path}/ABS_Census_DataPacks/{year}_GCP_{i}_for_WA_short-header.zip') as z:
-            df = readData(
-                [name for name in z.namelist() if name.endswith(f'{year}Census_G01_WA_{i}.csv')][0],
-                file_path = f'{file_path}/ABS_Census_DataPacks/{year}_GCP_{i}_for_WA_short-header.zip',
-                na_values = 'Z',
-                usecols = [f'{i}_CODE_{year}', 'Tot_P_P'],
-                dtype = {f'{i}_CODE_{year}': 'string'},
-            )
-        
-        df.columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in df.columns]
-
-        # Remove code prefix to join DataFrames
-        df['CODE'] = df['CODE'].apply(lambda x: x.removeprefix(i))
-
-        # Join DataFrames
-        dfs[i] = dfs[i].join(df.set_index('CODE'), on = 'CODE', how = 'left').dropna(how = 'any')
-        
-    return dfs
-
-
-def getPopulationData(filename, file_path = None):
+def getPopulationData(filename, file_path = '', area_types = [], year = 2021, get_csv = True):
 
     # Read data from files
 
-    pop_data_file_path = f'{file_path}/Region_Population_Data'
-    area_types = ['LGA', 'SA3', 'SAL']
-    year = 2021
+    # Folder for data related to population
+    abs_data_file_path = path.join(file_path, 'ABS_Data')
+    if not path.isdir(abs_data_file_path):
+        makedirs(abs_data_file_path)
 
     ## Relevant areas
-    df = readData(filename, file_path = pop_data_file_path)
+    df = readData(filename, file_path = file_path, get_csv = get_csv)
 
     # ABS data
-    dfs = loadABSData(file_path = file_path, area_types = area_types, year = year)
+    dfs = loadABSData(file_path = abs_data_file_path, area_types = area_types, year = year, get_csv = get_csv)
 
 
     # Clean data
@@ -104,30 +115,25 @@ def getPopulationData(filename, file_path = None):
         # Strip trailing whitespace from names
         dfs[i]['NAME'] = dfs[i]['NAME'].apply(lambda x: x.strip())
 
-
     # Add code and population columns
-
     df['Code'] = str()
     df['Population'] = int()
 
 
-    # Get codes and populations
+    # Extract population data
 
+    # Get codes and populations
     for i in area_types:
         df = getPopulations(df, dfs[i], i)
 
-
     # Sum populations for each region
-
     pops = df[['District', 'Region', 'State', 'Population']]
     pops = pops.groupby(by = ['State', 'Region', 'District'], observed = False, as_index = False).sum()
     pops[['State', 'Region', 'District']] = pops[['State', 'Region', 'District']].apply(lambda x: x.str.upper())
     pop_df = pops[['District', 'Region', 'State', 'Population']]
 
-
     # Write population data to Excel file
-
-    writeToFile(df, 'RegionMapping.csv', file_path = pop_data_file_path)
-    #writeToFile(pop_df, 'RegionPopulations.csv', file_path = pop_data_file_path, index = True)
+    writeToFile(df, 'RegionMapping.csv', file_path = file_path)
+    #writeToFile(pop_df, 'RegionPopulations.csv', file_path = abs_data_file_path, index = True)
 
     return(pop_df)

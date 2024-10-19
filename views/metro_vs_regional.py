@@ -9,7 +9,7 @@ import seaborn as sns
 
 import sys
 
-from helpers.CrimeData import getCrimeData
+from helpers.CrimeData import *
 
 
 @st.cache_data
@@ -18,42 +18,36 @@ def load_data():
     filename = 'data'
     file_path = 'assets'
 
-    # Load the "Western Australia" sheet, skipping metadata rows
-    #wa_data = pd.read_excel(file_path, sheet_name="Western Australia", skiprows=6)
-
+    # Load 'Data' sheet
     crimes_df = getCrimeData(filename, file_path = file_path, sheet_name = 'Data')
-    #wa_data = getCrimeData(file_path, sheet_name = 'Western Australia')
     
     return crimes_df
 
 st.title("Metro vs Regional Crime")
-st.write("Hello from metro_vs_region.py")
-st.write("hi")
-
-# Function for getting crime counts for a region
-
-def getCrimeCounts(df, scale = 'District', area = None):
-
-    if area:
-        df = df[df[scale].str.contains(area.upper())]
-
-    df = df[[scale, 'Crime', 'Count_Per_100']]
-    df = df.groupby(
-        by = [scale, 'Crime'],
-        observed = False,
-        as_index = False,
-    ).sum().sort_values(
-        by = 'Count_Per_100',
-        ascending = False,
-    )
-    
-    return df
 
 crimes_df = load_data()
 
 crimes_df['District_Name'] = crimes_df['District'].apply(lambda x: x.title().removesuffix(' District'))
+crimes_df['Region_Name'] = crimes_df['Region'].apply(lambda x: x.split()[0].title())
 
-# Create scatter plot
+
+# Bar chart
+
+fig = px.bar(
+    crimes_df,
+    x = 'Count_Per_100',
+    y = 'Crime',
+    color = 'Region_Name',
+    width = 700,
+    height = 600,
+    barmode = 'group',
+    title = 'Total Number of Crimes per Region (2007-2024)',
+)
+
+st.plotly_chart(fig, use_container_width = True)
+
+
+# Scatter plot
 
 fig = px.scatter(
     crimes_df,
@@ -61,9 +55,10 @@ fig = px.scatter(
     y = 'Crime',
     animation_frame = 'Year',
     animation_group = 'Crime',
-    color = 'District_Name',
+    color = 'Region_Name',
     width = 700,
     height = 600,
+    title = 'Total Number of Crimes per Region (2007-2024)',
 )
 
 st.plotly_chart(fig, use_container_width = True)
