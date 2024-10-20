@@ -10,37 +10,96 @@ Eren Stannard - 34189185
 
 # Import libraries
 
-from os import path, makedirs
+import os
 import numpy as np
 import pandas as pd
 import requests
 
+from calendar import timegm
+from datetime import datetime
+
 from helpers.FileIO import *
-from helpers.PopulationData import getPopulationData
+from helpers.PopulationData import getPopulationData, downloadABSData
+
+
+# Function for checking for dataset updates
+
+def checkDatasetUpdate(filename, url):
+    
+    file_mtime = os.path.getmtime(filename)
+    soup = getHTMLData(url)
+    last_update_time = soup.find(class_ = 'page-reviewed').time['datetime']
+    last_update_time = timegm(datetime.timetuple(datetime.fromisoformat(last_update_time)))
+
+    # Return True if webpage has been updated since last dataset download
+    return last_update_time > file_mtime
+
+
+# Function for downloading crime dataset
+
+def downloadDataset(filename, file_path = '', check_first = True):
+    
+    download = True
+
+    for ext in ['.csv', '.xlsx']:
+        filename = filename.removesuffix(ext)
+    filename = f'{os.path.join(file_path, filename)}.xlsx'
+
+    url = "https://www.wa.gov.au"
+    
+    if check_first:
+        cs_url = f"{url}/organisation/western-australia-police-force/crime-statistics#/start"
+        if os.path.isfile(filename) and not checkDatasetUpdate(filename, cs_url):
+            download = False
+
+    if download:
+        print("Downloading dataset...")
+        dl_url = f"{url}/media/48429/download?inline?inline="
+        response = requests.get(dl_url)
+        with open(filename, 'wb') as f:
+            f.write(response.content)
+    else:
+        print("Dataset already downloaded.")
 
 
 # Function for loading crime dataset
 
-def loadCrimeData(filename, file_path = '', sheet_name = None, get_csv = True):
+def loadCrimeData(filename, file_path = '', sheet_name = None, get_csv = True, download = False):
 
     for ext in ['.csv', '.xlsx']:
         filename = filename.removesuffix(ext)
     
-    filename = f'{path.join(file_path, filename)}.xlsx'
+    filename = f'{os.path.join(file_path, filename)}.xlsx'
 
-    #downloadDataset(filename)
+    if download or not os.path.isfile(filename):
+        downloadDataset(filename)
     
-    df = readData(filename, file_path = file_path, sheet_name = sheet_name, get_csv = get_csv)
+    df = readData(
+        filename,
+        file_path = file_path,
+        sheet_name = sheet_name,
+        get_csv = get_csv,
+    )
 
     return df
 
 
 # Function for getting processed crime data
 
-def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crimes = False, get_csv = True):
+def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crimes = False,
+                 get_csv = True, download = False, write_new_csvs = False):
+    
+    if download:
+        write_new_csvs = True
 
     # Load crime dataset
-    crimes_df = loadCrimeData(filename, file_path = file_path, sheet_name = sheet_name, get_csv = get_csv)
+    crimes_df = loadCrimeData(
+        filename,
+        file_path = file_path,
+        sheet_name = sheet_name,
+        get_csv = get_csv,
+        download = download,
+    )
 
 
     # Clean and transform data
@@ -86,10 +145,15 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
         file_path = file_path,
         area_types = ['LGA', 'SA3', 'SAL'],
         get_csv = get_csv,
+        download = download,
     )
 
     # Join crimes_df with pop_df
-    crimes_df = crimes_df.join(pop_df.set_index('District'), on = 'District', how = 'left').dropna()
+    crimes_df = crimes_df.join(
+        pop_df.set_index('District'),
+        on = 'District',
+        how = 'left',
+    ).dropna()
 
     # Scale Count according to population
     crimes_df['Count_Per_100'] = (crimes_df['Count'] / (crimes_df['Population'] / 100))
@@ -99,31 +163,49 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
 
     # Processed data
     writeToFile(crimes_df, f'{filename}_Processed.csv', file_path = file_path)
-    
+
     # File path to write sorted .csv files
-    csv_file_path = path.join(file_path, 'CSVs')
-    if not path.isdir(csv_file_path):
-        makedirs(csv_file_path)
-
-    # 1 file sorted by date -> disrict -> crime
-    crimes_df_sorted = crimes_df.sort_values(by = ['Period', 'District', 'Crime'], ignore_index = True)
-    writeToFile(crimes_df_sorted, f'{filename}_All_Crimes.csv', file_path = csv_file_path)
+    csv_file_path = os.path.join(file_path, 'CSVs')
+    if not os.path.isdir(csv_file_path):
+        os.makedirs(csv_file_path)
+        write_new_csvs = True
     
-    # 1 file grouped by crime
-    crimes_df_sorted_totals = crimes_df_sorted.drop(columns = ['Period', 'Month', 'Year'])
-    crimes_df_sorted_totals = crimes_df_sorted_totals.groupby(
-        by = [x for x in crimes_df_sorted_totals.columns if not x.startswith('Count')],
-        observed = False,
-        as_index = False,
-    ).sum().sort_values(
-        by = 'Count_Per_100',
-        ascending = False,
-    )
-    writeToFile(crimes_df_sorted_totals, f'{filename}_All_Crimes_Totals.csv', file_path = csv_file_path)
+    if write_new_csvs:
+    
+        # 1 file sorted by date -> disrict -> crime
+        crimes_df_sorted = crimes_df.sort_values(
+            by = ['Period', 'District', 'Crime'],
+            ignore_index = True,
+        )
+        writeToFile(
+            crimes_df_sorted,
+            f'{filename}_All_Crimes_Sorted.csv',
+            file_path = csv_file_path,
+        )
+        
+        # 1 file grouped by crime
+        crimes_df_sorted_totals = crimes_df_sorted.drop(columns = ['Period', 'Month', 'Year'])
+        crimes_df_sorted_totals = crimes_df_sorted_totals.groupby(
+            by = [x for x in crimes_df_sorted_totals.columns if not x.startswith('Count')],
+            observed = False,
+            as_index = False,
+        ).sum().sort_values(
+            by = 'Count_Per_100',
+            ascending = False,
+        )
+        writeToFile(
+            crimes_df_sorted_totals,
+            f'{filename}_All_Crimes_Totals_Sorted.csv',
+            file_path = csv_file_path,
+        )
 
-    # Separate files for each crime
-    for crime in crimes_df['Crime'].unique():
-        writeToFile(crimes_df_sorted[crimes_df_sorted['Crime'] == crime], f'{filename}_{crime}.csv', file_path = csv_file_path)
+        # Separate files for each crime
+        for crime in crimes_df['Crime'].unique():
+            writeToFile(
+                crimes_df_sorted[crimes_df_sorted['Crime'] == crime],
+                f'{filename}_{crime}_Sorted.csv',
+                file_path = csv_file_path,
+            )
 
 
     return crimes_df
@@ -156,6 +238,6 @@ def loadDataset():
     file_path = 'assets'
     sheet_name = 'Data'
 
-    crimes_df = getCrimeData(filename, file_path = file_path, sheet_name = sheet_name)
+    crimes_df = getCrimeData(filename, file_path = file_path, sheet_name = sheet_name, download = True)
     
     return crimes_df

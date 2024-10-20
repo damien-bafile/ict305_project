@@ -7,13 +7,12 @@ from bokeh.models import ColumnDataSource
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import sys
-
 from helpers.CrimeData import *
 
 
 @st.cache_data
 def load_data():
+    
     # Load the data from the Excel file (this assumes you have the file in the same directory)
     filename = 'data'
     file_path = 'assets'

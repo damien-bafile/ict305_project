@@ -8,16 +8,12 @@ Eren Stannard - 34189185
 '''
 
 
-from os import path
+import os
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from zipfile import ZipFile
 import json
 import geojson
-
-from datetime import datetime
-from calendar import timegm
 
 
 # Function for getting HTML data
@@ -47,16 +43,16 @@ def getCSV(filename, sheet_name = 0, skiprows = None, na_values = None, index_co
     for ext in ['.csv', '.xlsx']:
         fn = fn.removesuffix(ext)
     
-    csv = path.isfile(f'{fn}.csv')
-    xlsx = path.isfile(f'{fn}.xlsx')
+    csv = os.path.isfile(f'{fn}.csv')
+    xlsx = os.path.isfile(f'{fn}.xlsx')
 
     if ((xlsx and not csv) or
-        ((csv and xlsx) and (path.getmtime(f'{fn}.csv') < path.getmtime(f'{fn}.xlsx')))):
+        ((csv and xlsx) and (os.path.getmtime(f'{fn}.csv') < os.path.getmtime(f'{fn}.xlsx')))):
         df = readData(
             f'{fn}.xlsx', sheet_name = sheet_name, skiprows = skiprows, na_values = na_values,
             index_col = index_col, usecols = usecols, dtype = dtype, header = header,
         )
-        writeToFile(df, f'{path.basename(fn)}.csv', file_path = path.dirname(filename))
+        writeToFile(df, f'{os.path.basename(fn)}.csv', file_path = os.path.dirname(filename))
     
     if xlsx or csv:
         filename = f'{fn}.csv'
@@ -71,8 +67,8 @@ def readData(filename, file_path = None, sheet_name = 0, skiprows = None, na_val
 
     data = None
 
-    if file_path and (file_path != path.dirname(filename)):
-        filename = path.join(file_path, filename)
+    if file_path and (file_path != os.path.dirname(filename)):
+        filename = os.path.join(file_path, filename)
 
     if get_csv:
         filename = getCSV(
@@ -80,7 +76,7 @@ def readData(filename, file_path = None, sheet_name = 0, skiprows = None, na_val
             index_col = index_col, usecols = usecols, dtype = dtype, header = header,
         )
 
-    if path.isfile(filename):
+    if os.path.isfile(filename):
 
         if filename.endswith('.csv'):
             data = pd.read_csv(
@@ -111,38 +107,12 @@ def readData(filename, file_path = None, sheet_name = 0, skiprows = None, na_val
     return data
 
 
-# Function for reading data from a .zip file
-
-def readZIPData(filename, file_path = None, sheet_name = 0, skiprows = None, na_values = None,
-                index_col = None, usecols = None, dtype = None, header = 0):
-
-    data = None
-
-    if path.isfile(file_path):
-
-        if file_path.endswith('.zip') and filename.endswith('.csv'):
-            with ZipFile(file_path) as z:
-                with z.open(filename) as f:
-                    data = pd.read_csv(
-                        f, skiprows = skiprows, na_values = na_values, index_col = index_col,
-                        usecols = usecols, dtype = dtype, header = header, low_memory = False,
-                    )
-                    
-        else:
-            print("Error: Invalid file type.\n")
-
-    else:
-        print("Error: Could not open file.\n")
-
-    return data
-
-
 # Function for writing data to a file
 
 def writeToFile(data, filename, file_path = None, index = False, columns = None):
 
     if file_path:
-        filename = path.join(file_path, filename)
+        filename = os.path.join(file_path, filename)
 
     if filename.endswith('.csv'):
         data.to_csv(filename, index = index, columns = columns)

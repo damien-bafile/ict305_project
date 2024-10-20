@@ -10,22 +10,67 @@ Eren Stannard - 34189185
 
 # Import libraries
 
-from os import path, makedirs
+import os
 import numpy as np
 import pandas as pd
 import requests
 from zipfile import ZipFile
+from io import BytesIO
 
 from helpers.FileIO import *
 
 
+# Function for downloading ABS data
+
+def downloadABSData(geographies, file_path = '', year = 2021, check_first = True):
+    
+    if not os.path.isdir(file_path):
+        os.makedirs(file_path)
+    url = "https://www.abs.gov.au"
+    asgs_url = f"{url}/statistics/standards/australian-statistical-geography-standard-asgs-edition-3"
+
+    # Allocation Files (for retrieving codes)
+    af_filenames = [f'{g}_{year}_AUST.xlsx' for g in geographies]
+    af_url = f"{asgs_url}/jul{year}-jun{year+5}/access-and-downloads/allocation-files"
+
+    # Census DataPacks (for retrieving populations)
+    dp_zip_filenames = [f'{year}_GCP_{g}_for_WA_short-header.zip' for g in geographies]
+    dp_filenames = [f'{year}Census_G01_WA_{g}.csv' for g in geographies]
+    dp_url = f"{url}/census/find-census-data/datapacks/download"
+
+    session = requests.Session()
+
+    # Download Allocation Files
+    for filename in af_filenames:
+        if not os.path.isfile(os.path.join(file_path, filename)):
+            print(f"Downloading {filename}...")
+            response = session.get(f'{af_url}/{filename}')
+            with open(os.path.join(file_path, filename), 'wb') as f:
+                f.write(response.content)
+        else:
+            print(f"{filename} already downloaded.")
+
+    # Download Census DataPacks
+    for (filename, member_name) in zip(dp_zip_filenames, dp_filenames):
+        if not os.path.isfile(os.path.join(file_path, member_name)):
+            print(f"Downloading {filename}...")
+            response = session.get(f'{dp_url}/{filename}')
+            with ZipFile(BytesIO(response.content)) as z:
+                member_path = [x for x in z.namelist() if x.endswith(member_name)][0]
+                with open(os.path.join(file_path, member_name), 'wb') as f:
+                    f.write(z.read(member_path))
+        else:
+            print(f"{member_name} already downloaded.")
+
+
 # Function for loading ABS data
 
-def loadABSData(file_path = '', area_types = [], year = 2021, na_values = 'Z', usecols = None, get_csv = True):
+def loadABSData(file_path = '', area_types = [], year = 2021, get_csv = True, download = False):
 
     dfs = dict.fromkeys(area_types)
 
-    #downloadABSData(area_types, file_path = file_path, year = year)
+    if download:
+        downloadABSData(area_types, file_path = file_path, year = year)
 
     for i in area_types:
 
@@ -83,20 +128,30 @@ def getPopulations(df, area_type_df, area_type):
 
 # Function for getting population data using ABS data
 
-def getPopulationData(filename, file_path = '', area_types = [], year = 2021, get_csv = True):
+def getPopulationData(filename, file_path = '', area_types = [], year = 2021, get_csv = True, download = False):
 
     # Read data from files
 
     # Folder for data related to population
-    abs_data_file_path = path.join(file_path, 'ABS_Data')
-    if not path.isdir(abs_data_file_path):
-        makedirs(abs_data_file_path)
+    abs_data_file_path = os.path.join(file_path, 'ABS_Data')
+    if not os.path.isdir(abs_data_file_path):
+        os.makedirs(abs_data_file_path)
+        download = True
 
     ## Relevant areas
     df = readData(filename, file_path = file_path, get_csv = get_csv)
+    
+    if download:
+        downloadABSData(area_types, file_path = file_path, year = year)
 
     # ABS data
-    dfs = loadABSData(file_path = abs_data_file_path, area_types = area_types, year = year, get_csv = get_csv)
+    dfs = loadABSData(
+        file_path = abs_data_file_path,
+        area_types = area_types,
+        year = year,
+        get_csv = get_csv,
+        download = download,
+    )
 
 
     # Clean data
@@ -127,10 +182,10 @@ def getPopulationData(filename, file_path = '', area_types = [], year = 2021, ge
         df = getPopulations(df, dfs[i], i)
 
     # Sum populations for each region
-    pops = df[['District', 'Region', 'State', 'Population']]
-    pops = pops.groupby(by = ['State', 'Region', 'District'], observed = False, as_index = False).sum()
-    pops[['State', 'Region', 'District']] = pops[['State', 'Region', 'District']].apply(lambda x: x.str.upper())
-    pop_df = pops[['District', 'Region', 'State', 'Population']]
+    name_cols = ['State', 'Region', 'District']
+    pop_df = df[name_cols + ['Population']]
+    pop_df = pop_df.groupby(by = name_cols, observed = False, as_index = False).sum()
+    pop_df[name_cols] = pop_df[name_cols].apply(lambda x: x.str.upper())
 
     # Write population data to Excel file
     writeToFile(df, 'RegionMapping.csv', file_path = file_path)

@@ -3,6 +3,6 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'helpers')))
 
-import FileIO
+'''import FileIO
 import PopulationData
-import CrimeData
+import CrimeData'''
