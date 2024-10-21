@@ -22,7 +22,7 @@ from helpers.FileIO import *
 
 # Function for downloading ABS data
 
-def downloadABSData(geographies, file_path = '', year = 2021, check_first = True):
+def downloadABSData(geographies, file_path = '', year = 2021, download_zips = False, check_first = True):
     
     if not os.path.isdir(file_path):
         os.makedirs(file_path)
@@ -52,9 +52,24 @@ def downloadABSData(geographies, file_path = '', year = 2021, check_first = True
 
     # Download Census DataPacks
     for (filename, member_name) in zip(dp_zip_filenames, dp_filenames):
-        if not os.path.isfile(os.path.join(file_path, member_name)):
-            print(f"Downloading {filename}...")
+
+        zip_exists = os.path.isfile(os.path.join(file_path, filename))
+        member_exists = os.path.isfile(os.path.join(file_path, member_name))
+
+        if not ((zip_exists or not download_zips) and member_exists):
+            print(f"Downloading {member_name} from {filename}...")
             response = session.get(f'{dp_url}/{filename}')
+
+        if download_zips and not zip_exists:
+            print(f"Downloading {filename}...")
+            with open(os.path.join(file_path, filename), 'wb') as f:
+                f.write(response.content)
+        else:
+            print(f"{filename} already downloaded.")
+            download_zips = False
+        
+        if download_zips or not member_exists:
+            print(f"Downloading {member_name}...")
             with ZipFile(BytesIO(response.content)) as z:
                 member_path = [x for x in z.namelist() if x.endswith(member_name)][0]
                 with open(os.path.join(file_path, member_name), 'wb') as f:
@@ -65,44 +80,55 @@ def downloadABSData(geographies, file_path = '', year = 2021, check_first = True
 
 # Function for loading ABS data
 
-def loadABSData(file_path = '', area_types = [], year = 2021, get_csv = True, download = False):
+def loadABSData(file_path = '', geographies = [], year = 2021, get_csv = True, download = False):
 
-    dfs = dict.fromkeys(area_types)
+    dfs = dict.fromkeys(geographies)
+
+    # Allocation Files (for retrieving codes)
+    af_filenames = [f'{g}_{year}_AUST.xlsx' for g in geographies]
+
+    # Census DataPacks (for retrieving populations)
+    dp_filenames = [f'{year}Census_G01_WA_{g}.csv' for g in geographies]
+
+    for filename in af_filenames + dp_filenames:
+        if not os.path.isfile(os.path.join(file_path, filename)):
+            download = True
+            break
 
     if download:
-        downloadABSData(area_types, file_path = file_path, year = year)
+        downloadABSData(geographies, file_path = file_path, year = year)
 
-    for i in area_types:
+    for (g, af_filename, dp_filename) in zip(geographies, af_filenames, dp_filenames):
 
         # Allocation Files
-        dfs[i] = readData(
-            f'{i}_{year}_AUST.csv',
+        dfs[g] = readData(
+            af_filename,
             file_path = file_path,
             na_values = 'Z',
-            usecols = [f'{i}_CODE_{year}', f'{i}_NAME_{year}', f'STATE_CODE_{year}'],
-            dtype = {f'{i}_CODE_{year}': 'string'},
+            usecols = [f'{g}_CODE_{year}', f'{g}_NAME_{year}', f'STATE_CODE_{year}'],
+            dtype = {f'{g}_CODE_{year}': 'string'},
             get_csv = get_csv,
         )
         
-        dfs[i].columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in dfs[i].columns]
+        dfs[g].columns = [x.removeprefix(f'{g}_').removesuffix(f'_{year}') for x in dfs[g].columns]
 
         # Census DataPacks
         df = readData(
-            f'{year}Census_G01_WA_{i}.csv',
+            dp_filename,
             file_path = file_path,
             na_values = 'Z',
-            usecols = [f'{i}_CODE_{year}', 'Tot_P_P'],
-            dtype = {f'{i}_CODE_{year}': 'string'},
+            usecols = [f'{g}_CODE_{year}', 'Tot_P_P'],
+            dtype = {f'{g}_CODE_{year}': 'string'},
             get_csv = get_csv,
         )
         
-        df.columns = [j.removeprefix(f'{i}_').removesuffix(f'_{year}') for j in df.columns]
+        df.columns = [x.removeprefix(f'{g}_').removesuffix(f'_{year}') for x in df.columns]
 
         # Remove code prefix to join DataFrames
-        df['CODE'] = df['CODE'].apply(lambda x: x.removeprefix(i))
+        df['CODE'] = df['CODE'].apply(lambda x: x.removeprefix(g))
 
         # Join DataFrames
-        dfs[i] = dfs[i].join(
+        dfs[g] = dfs[g].join(
             df.set_index('CODE'),
             on = 'CODE',
             how = 'left',
@@ -113,22 +139,22 @@ def loadABSData(file_path = '', area_types = [], year = 2021, get_csv = True, do
 
 # Function for getting populations
 
-def getPopulations(df, area_type_df, area_type):
+def getPopulations(df, geography_df, geography):
 
-    for i in df[df['Type'] == area_type].index:
+    for i in df[df['Type'] == geography].index:
 
         # Get code
-        df.loc[i, 'Code'] = area_type_df[area_type_df['NAME'] == df.loc[i, 'Name']]['CODE'].values[0]
+        df.loc[i, 'Code'] = geography_df[geography_df['NAME'] == df.loc[i, 'Name']]['CODE'].values[0]
 
         # Get population
-        df.loc[i, 'Population'] = area_type_df[area_type_df['CODE'] == df.loc[i, 'Code']]['Tot_P_P'].values[0]
+        df.loc[i, 'Population'] = geography_df[geography_df['CODE'] == df.loc[i, 'Code']]['Tot_P_P'].values[0]
 
     return df
 
 
 # Function for getting population data using ABS data
 
-def getPopulationData(filename, file_path = '', area_types = [], year = 2021, get_csv = True, download = False):
+def getPopulationData(filename, file_path = '', geographies = [], year = 2021, get_csv = True, download = False):
 
     # Read data from files
 
@@ -142,12 +168,12 @@ def getPopulationData(filename, file_path = '', area_types = [], year = 2021, ge
     df = readData(filename, file_path = file_path, get_csv = get_csv)
     
     if download:
-        downloadABSData(area_types, file_path = file_path, year = year)
+        downloadABSData(geographies, file_path = file_path, year = year)
 
     # ABS data
     dfs = loadABSData(
         file_path = abs_data_file_path,
-        area_types = area_types,
+        geographies = geographies,
         year = year,
         get_csv = get_csv,
         download = download,
@@ -159,7 +185,7 @@ def getPopulationData(filename, file_path = '', area_types = [], year = 2021, ge
     # Strip trailing whitespace from names
     df['Name'] = df['Name'].apply(lambda x: x.strip())
 
-    for i in area_types:
+    for i in geographies:
 
         # Convert state codes to int
         dfs[i]['STATE_CODE'] = dfs[i]['STATE_CODE'].fillna(0).astype('int')
@@ -178,7 +204,7 @@ def getPopulationData(filename, file_path = '', area_types = [], year = 2021, ge
     # Extract population data
 
     # Get codes and populations
-    for i in area_types:
+    for i in geographies:
         df = getPopulations(df, dfs[i], i)
 
     # Sum populations for each region

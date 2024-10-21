@@ -66,7 +66,7 @@ def readData(filename, file_path = None, sheet_name = 0, skiprows = None, na_val
              index_col = None, usecols = None, dtype = None, header = 0, get_csv = False):
 
     data = None
-
+    
     if file_path and (file_path != os.path.dirname(filename)):
         filename = os.path.join(file_path, filename)
 

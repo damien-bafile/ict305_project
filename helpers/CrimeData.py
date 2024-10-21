@@ -19,7 +19,7 @@ from calendar import timegm
 from datetime import datetime
 
 from helpers.FileIO import *
-from helpers.PopulationData import getPopulationData, downloadABSData
+from helpers.PopulationData import getPopulationData
 
 
 # Function for checking for dataset updates
@@ -71,7 +71,10 @@ def loadCrimeData(filename, file_path = '', sheet_name = None, get_csv = True, d
     
     filename = f'{os.path.join(file_path, filename)}.xlsx'
 
-    if download or not os.path.isfile(filename):
+    if not not os.path.isfile(filename):
+        download = True
+
+    if download:
         downloadDataset(filename)
     
     df = readData(
@@ -91,6 +94,9 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
     
     if download:
         write_new_csvs = True
+
+    for ext in ['.csv', '.xlsx']:
+        filename = filename.removesuffix(ext)
 
     # Load crime dataset
     crimes_df = loadCrimeData(
@@ -143,7 +149,7 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
     pop_df = getPopulationData(
         'RegionListing.csv',
         file_path = file_path,
-        area_types = ['LGA', 'SA3', 'SAL'],
+        geographies = ['LGA', 'SA3', 'SAL'],
         get_csv = get_csv,
         download = download,
     )
@@ -228,16 +234,3 @@ def getCrimeCounts(df, scale = 'District', area = None, ascending = False):
     )
     
     return df
-
-
-# File to just run everything
-
-def loadDataset():
-
-    filename = 'WA Police Force Crime Timeseries'
-    file_path = 'assets'
-    sheet_name = 'Data'
-
-    crimes_df = getCrimeData(filename, file_path = file_path, sheet_name = sheet_name, download = True)
-    
-    return crimes_df

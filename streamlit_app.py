@@ -4,17 +4,17 @@ from http.client import responses
 import pandas as pd
 import streamlit as st
 
-from helpers.CrimeData import downloadDataset
-from helpers.PopulationData import downloadABSData
+from helpers.DataLoading import downloadData
 
 # Load the data from the Excel file (this assumes you have the file in the same directory)
-file_path = 'assets'
-filename = 'data.xlsx'
+#file_path = 'assets'
+#filename = 'data.xlsx'
+#sheet_name = 'Data'
 
 # Geographies and year for ABS data to download
-abs_file_path = os.path.join(file_path, 'ABS_Data')
-geographies = ['LGA', 'SA3', 'SAL']
-year = 2021
+#abs_file_path = os.path.join(file_path, 'ABS_Data')
+#geographies = ['LGA', 'SA3', 'SAL']
+#year = 2021
 
 
 # --- PAGE SETUP ---
@@ -71,8 +71,7 @@ st.sidebar.download_button(
     help="Download the dataset for you own use",
 )
 # -- DOWNLOAD DATASET ---
-downloadDataset(filename, file_path = file_path, check_first = True)
-downloadABSData(geographies, file_path = abs_file_path, year = year, check_first = True)
+downloadData()
 
 # -- RUN NAVIGATION ---
 pg.run()
