@@ -1,68 +1,77 @@
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
 import json
 import pandas as pd
 
-# Title of the app
-st.title("Choropleth Map of Perth Area")
-
-
-@st.cache_data
-def load_data():
-    # Load the data from the Excel file (this assumes you have the file in the same directory)
-    file_path = "assets/WA Police Force Crime Timeseries.csv"
-
-    # Load the "Western Australia" sheet, skipping metadata rows
-    wa_data = pd.read_csv(file_path)
-    return wa_data
-
-
-def preprocess(data):
-    # get all the Murder from the WAPOL_Hierarchy_Lvl1 column
-    fmt_data = data[data["WAPOL_Hierarchy_Lvl1"] == "Murder"]
-    # get all the dates for
-    fmt_data = fmt_data[fmt_data["Period"] == "2007"]
-    return fmt_data
-
-
-data = load_data()
-st.write(preprocess(data=data))
-
-# Load the GeoJSON file
-geojson_file_path = "./assets/WA Police Force District Boundaries (WAPOL-002).geojson"
+# Load the GeoJSON file for suburbs
+geojson_file_path = "assets/WAPoliceForceDistrictboundaries(WAPOL-002).geojson"
 
 with open(geojson_file_path) as f:
-    geojson_data = json.load(f)
+    geojson_data_suburbs = json.load(f)
+
+# Load the crime data from the CSV
+crime_data = pd.read_csv("assets/CSVs/data_All_Crimes_Totals_Sorted.csv")
+
+# Extract unique crime types
+crime_types = crime_data["Crime"].unique()
 
 
-# Example data (replace this with actual data relevant to the map)
-data = pd.DataFrame(
-    {
-        "region_name": [
-            "Perth",
-            "Region B",
-            "Region C",
-            "Region D",
-        ],  # Replace with actual region names
-        "value": [10, 20, 30, 40],  # Replace with actual values
+# Create a base figure (for the first crime type by default)
+initial_crime_type = crime_types[0]
+filtered_data = crime_data[crime_data["Crime"] == initial_crime_type].copy()
+
+# Ensure 'District' column matches the 'DISTRICT' property in GeoJSON
+filtered_data.loc[:, 'District'] = filtered_data['District'].str.upper()
+
+# Create the choropleth map
+fig = px.choropleth_mapbox(
+    filtered_data,
+    geojson=geojson_data_suburbs,
+    locations="District",
+    featureidkey="properties.DISTRICT",
+    color="Count_Per_100",
+    color_continuous_scale="Viridis",
+    mapbox_style="carto-positron",
+    zoom=8,
+    center={"lat": -31.9505, "lon": 115.8605},  # Perth's coordinates
+    opacity=0.6,
+    hover_data={
+        "District": True,
+        "Region": True,
+        "Count": True,
+        "Population": True,
+        "Count_Per_100": True
     }
 )
 
-# Create the Choroplethmapbox
-fig = px.choropleth_mapbox(
-    data,
-    geojson=geojson_data,
-    locations="region_name",
-    featureidkey="properties.NAME",  # Change this key to match the actual GeoJSON field
-    color="value",
-    color_continuous_scale="Viridis",
-    mapbox_style="carto-positron",
-    zoom=8,  # Adjust for Perth area
-    center={"lat": -31.9505, "lon": 115.8605},  # Perth's coordinates
-    opacity=0.6,
-)
-# Update layout of the map
-fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+# Create the dropdown menu for crime types
+dropdown_buttons = [
+    {
+        "args": [{"z": [crime_data[crime_data["Crime"] == crime_type]["Count_Per_100"]]}],
+        "label": crime_type,
+        "method": "update",
+    }
+    for crime_type in crime_types
+]
 
+# Add dropdown to the layout
+fig.update_layout(
+    updatemenus=[
+        {
+            "buttons": dropdown_buttons,
+            "direction": "down",
+            "pad": {"r": 10, "t": 10},
+            "showactive": True,
+            "x": 0.1,
+            "xanchor": "left",
+            "y": 1.05,
+            "yanchor": "top"
+        }
+    ],
+    margin={"r": 0, "t": 50, "l": 0, "b": 0},
+    title_x=0.5,
+    title="Interactive Crime Map by Type",
+)
 # Display the map in Streamlit
-st.plotly_chart(fig)
+st.plotly_chart(fig, use_container_width=True)

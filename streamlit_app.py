@@ -4,7 +4,7 @@ from http.client import responses
 import pandas as pd
 import requests
 import streamlit as st
-
+from helpers.DataLoading import downloadData
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 file_path = "assets/data.xlsx"
 
@@ -71,7 +71,7 @@ st.sidebar.download_button(
     help="Download the dataset for you own use",
 )
 # -- DOWNLOAD DATASET ---
-download_dataset(file_path)
+downloadData()
 
 # -- RUN NAVIGATION ---
 pg.run()
