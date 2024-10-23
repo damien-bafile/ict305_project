@@ -23,9 +23,9 @@ def load_data():
     
     return crimes_df
 
-st.title("Metro vs Regional Crime")
+st.title("Crime by District")
 
-area_scale = 'Region'
+area_scale = 'District'
 
 crimes_df = load_data()
 crimes_df_total = getCrimeCounts(crimes_df, area_scale = area_scale, ascending = True)

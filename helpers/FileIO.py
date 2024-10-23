@@ -18,7 +18,7 @@ import geojson
 
 # Function for getting HTML data
 
-def getHTMLData(url, href = None, session = None):
+def getHTMLData(url, href = None, session = None, features = 'lxml', parse_only = None):
 
     if href:
         url += href
@@ -28,7 +28,7 @@ def getHTMLData(url, href = None, session = None):
     else:
         html_data = requests.get(url).text
     
-    soup = BeautifulSoup(html_data, 'lxml')
+    soup = BeautifulSoup(markup = html_data, features = features, parse_only = parse_only)
 
     return soup
 

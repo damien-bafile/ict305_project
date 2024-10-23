@@ -1,5 +1,13 @@
 ### DataLoading.py ###
 
+'''
+ICT305: Data Visualisation and Simulation
+Group Project
+Group Name: Machine Masters
+Eren Stannard - 34189185
+'''
+
+
 import os
 
 from helpers.CrimeData import downloadDataset, getCrimeData
@@ -23,7 +31,8 @@ def downloadData(filename = 'data.xlsx', file_path = 'assets', abs_file_path = '
 
 # Function to load and process data
 
-def loadData(filename = 'data', file_path = 'assets', sheet_name = 'Data'):
+def loadData(filename = 'data', file_path = 'assets', sheet_name = 'Data', get_csv = True,
+             download = False, write_new_csvs = True):
 
     if os.path.dirname(filename) == file_path:
         filename = os.path.basename(filename)
@@ -32,8 +41,9 @@ def loadData(filename = 'data', file_path = 'assets', sheet_name = 'Data'):
         filename,
         file_path = file_path,
         sheet_name = sheet_name,
-        get_csv = True,
-        download = True,
+        get_csv = get_csv,
+        download = download,
+        write_new_csvs = write_new_csvs,
     )
     
     return crimes_df

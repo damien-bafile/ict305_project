@@ -2,7 +2,7 @@
 
 '''
 ICT305: Data Visualisation and Simulation
-Group Assignment
+Group Project
 Group Name: Machine Masters
 Eren Stannard - 34189185
 '''

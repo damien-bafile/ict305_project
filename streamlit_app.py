@@ -25,19 +25,31 @@ about_page = st.Page(
     default=True,
 )
 
-crime_over_population = st.Page(
+crime_over_population_page = st.Page(
     page="views/crime_over_population.py",
     title="Test Homicide Bokem Graph",
     icon="📈",
 )
 
-crime_over_time = st.Page(
+crime_over_time_page = st.Page(
     page="views/crime_over_time.py", title="Crime Over Time", icon="📈"
+)
+
+crime_total_wa_page = st.Page(
+    page="views/crime_total_wa.py",
+    title="Crime for all of WA",
+    icon="📈",
 )
 
 metro_vs_regional_page = st.Page(
     page="views/metro_vs_regional.py",
     title="Metro vs Regional Crime",
+    icon="📈",
+)
+
+crime_by_district_page = st.Page(
+    page="views/crime_by_district.py",
+    title="Crime by District",
     icon="📈",
 )
 
@@ -52,9 +64,11 @@ pg = st.navigation(
     {
         "Info": [about_page],
         "Visualizations": [
-            crime_over_population,
-            crime_over_time,
+            crime_over_population_page,
+            crime_over_time_page,
+            crime_total_wa_page,
             metro_vs_regional_page,
+            crime_by_district_page,
             entertainment_page,
         ],
     }

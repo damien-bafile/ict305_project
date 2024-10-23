@@ -1,8 +1,8 @@
-### DataPreProcessing.py ###
+### CrimeData.py ###
 
 '''
 ICT305: Data Visualisation and Simulation
-Group Assignment
+Group Project
 Group Name: Machine Masters
 Eren Stannard - 34189185
 '''
@@ -14,6 +14,7 @@ import os
 import numpy as np
 import pandas as pd
 import requests
+from bs4 import SoupStrainer
 
 from calendar import timegm
 from datetime import datetime
@@ -27,12 +28,11 @@ from helpers.PopulationData import getPopulationData
 def checkDatasetUpdate(filename, url):
     
     file_mtime = os.path.getmtime(filename)
-    soup = getHTMLData(url)
-    last_update_time = soup.find(class_ = 'page-reviewed').time['datetime']
-    last_update_time = timegm(datetime.timetuple(datetime.fromisoformat(last_update_time)))
+    soup = getHTMLData(url, parse_only = SoupStrainer(class_ = 'page-reviewed'))
+    last_update = timegm(datetime.timetuple(datetime.fromisoformat(soup.time['datetime'])))
 
     # Return True if webpage has been updated since last dataset download
-    return last_update_time > file_mtime
+    return last_update > file_mtime
 
 
 # Function for downloading crime dataset
@@ -177,6 +177,8 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
         write_new_csvs = True
     
     if write_new_csvs:
+
+        print("Writing new .csv files...")
     
         # 1 file sorted by date -> disrict -> crime
         crimes_df_sorted = crimes_df.sort_values(
@@ -219,18 +221,28 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
 
 # Function for getting crime counts for a region
 
-def getCrimeCounts(df, scale = 'District', area = None, ascending = False):
+def getCrimeCounts(df, group_by = [], sort = True, sort_by = [], area_scale = 'District', area = None, ascending = False):
 
     if area:
-        df = df[df[scale].str.contains(area.upper())]
+        df = df[df[area_scale].str.contains(area.upper())]
+    
+    for i in [area_scale, 'Crime']:
+        if i not in group_by:
+            group_by = group_by + [i]
+    
+    if 'Count_Per_100' not in sort_by:
+        sort_by = sort_by + ['Count_Per_100']
 
-    df = df[[scale, 'Crime', 'Count_Per_100']].groupby(
-        by = [scale, 'Crime'],
+    df = df[group_by + sort_by].groupby(
+        by = group_by,
         observed = False,
         as_index = False,
-    ).sum().sort_values(
-        by = 'Count_Per_100',
-        ascending = ascending,
-    )
+    ).sum()
+    
+    if sort:
+        df = df.sort_values(
+            by = sort_by,
+            ascending = ascending,
+        )
     
     return df
