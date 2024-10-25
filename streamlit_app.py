@@ -5,16 +5,20 @@ import pandas as pd
 import requests
 import streamlit as st
 from helpers.DataLoading import downloadData, loadData
+
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 file_path = "assets/data.xlsx"
 
 
 def download_dataset(file):
     url = "https://www.wa.gov.au/media/48429/download?inline?inline="
-    # url = "https://www.police.wa.gov.au/Crime/~/media/5BBD428073EC4651B0C4693CD21E532C.ashx"
     response = requests.get(url)
     with open(file, "wb") as f:
         f.write(response.content)
+
+
+# -- PAGE CONFIG --
+st.set_page_config(page_title="ICT305 Machine Masters", layout="wide")
 
 
 # --- PAGE SETUP ---
@@ -70,8 +74,10 @@ st.sidebar.download_button(
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     help="Download the dataset for you own use",
 )
+
 # -- DOWNLOAD DATASET ---
 downloadData()
 loadData()
+
 # -- RUN NAVIGATION ---
 pg.run()
