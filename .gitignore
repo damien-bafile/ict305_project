@@ -109,3 +109,4 @@ ipython_config.py
 justfile
 **/__pycache__/
 forms/__pycache__
+assets/*
