@@ -25,61 +25,74 @@ from helpers.PopulationData import getPopulationData
 
 # Function for checking for dataset updates
 
-def checkDatasetUpdate(filename, url):
-    
-    file_mtime = os.path.getmtime(filename)
-    soup = getHTMLData(url, parse_only = SoupStrainer(class_ = 'page-reviewed'))
-    last_update = timegm(datetime.timetuple(datetime.fromisoformat(soup.time['datetime'])))
+def checkDatasetUpdate(filename, processed_filename = None):
 
-    # Return True if webpage has been updated since last dataset download
-    return last_update > file_mtime
+    print("checkDatasetUpdate()")
+    
+    url = "https://www.wa.gov.au/organisation/western-australia-police-force/crime-statistics#/start"
+
+    filename = filePath(filename)
+
+    download_update = not os.path.isfile(filename)
+
+    if not download_update:
+        file_mtime = os.path.getmtime(filename)
+        soup = getHTMLData(url, parse_only = SoupStrainer(class_ = 'page-reviewed'))
+        last_update = timegm(datetime.timetuple(datetime.fromisoformat(soup.time['datetime'])))
+
+        # True if webpage has been updated since last dataset download
+        download_update = last_update > file_mtime
+    
+    processing_update = download_update or checkFileUpdate(filename, processed_filename = processed_filename)
+    
+    if processing_update:
+        print(f"Data file {filename} updated on website.")
+
+    return processing_update, download_update
 
 
 # Function for downloading crime dataset
 
-def downloadDataset(filename, file_path = '', check_first = True):
-    
-    download = True
+def downloadDataset(filename, file_path = 'assets', check_first = True):
 
-    for ext in ['.csv', '.xlsx']:
-        filename = filename.removesuffix(ext)
-    filename = f'{os.path.join(file_path, filename)}.xlsx'
-
-    url = "https://www.wa.gov.au"
+    print("downloadDataset()")
     
+    download, downloaded = True, False
+    url = "https://www.wa.gov.au/media/48429/download?inline?inline="
+    filename, _ = filePath(filename, file_path = file_path, split_ext = True)
+    filename = f'{filename}.xlsx'
+
     if check_first:
-        cs_url = f"{url}/organisation/western-australia-police-force/crime-statistics#/start"
-        if os.path.isfile(filename) and not checkDatasetUpdate(filename, cs_url):
-            download = False
+        _, download_update = checkDatasetUpdate(filename)
+        download = download_update
 
     if download:
-        print("Downloading dataset...")
-        dl_url = f"{url}/media/48429/download?inline?inline="
-        response = requests.get(dl_url)
+        print(f"Downloading {filename} dataset...")
+        response = requests.get(url)
         with open(filename, 'wb') as f:
             f.write(response.content)
+            downloaded = True
     else:
         print("Dataset already downloaded.")
+        
+    return downloaded
 
 
 # Function for loading crime dataset
 
-def loadCrimeData(filename, file_path = '', sheet_name = None, get_csv = True, download = False):
+def loadCrimeData(filename, file_path = 'assets', sheet_name = 'Data', get_csv = True, download = False):
 
-    for ext in ['.csv', '.xlsx']:
-        filename = filename.removesuffix(ext)
-    
-    filename = f'{os.path.join(file_path, filename)}.xlsx'
+    print("loadCrimeData()")
 
-    if not not os.path.isfile(filename):
-        download = True
+    filename, _ = filePath(filename, file_path = file_path, split_ext = True)
+    filename = f'{filename}.xlsx'
+    exists = os.path.isfile(filename)
 
-    if download:
-        downloadDataset(filename)
+    if download or not exists:
+        downloadDataset(filename, check_first = exists)
     
     df = readData(
         filename,
-        file_path = file_path,
         sheet_name = sheet_name,
         get_csv = get_csv,
     )
@@ -87,16 +100,14 @@ def loadCrimeData(filename, file_path = '', sheet_name = None, get_csv = True, d
     return df
 
 
-# Function for getting processed crime data
+# Function for processing crime data
 
-def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crimes = False,
-                 get_csv = True, download = False, write_new_csvs = False):
+def processCrimeData(filename, file_path = 'assets', sheet_name = 'Data', include_sub_crimes = False,
+                     get_csv = True, write_new_csvs = True):
     
-    if download:
-        write_new_csvs = True
-
-    for ext in ['.csv', '.xlsx']:
-        filename = filename.removesuffix(ext)
+    print("processCrimeData()")
+    
+    file_path, filename = filePath(filename, file_path = file_path, split = True)
 
     # Load crime dataset
     crimes_df = loadCrimeData(
@@ -104,7 +115,6 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
         file_path = file_path,
         sheet_name = sheet_name,
         get_csv = get_csv,
-        download = download,
     )
 
 
@@ -151,7 +161,6 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
         file_path = file_path,
         geographies = ['LGA', 'SA3', 'SAL'],
         get_csv = get_csv,
-        download = download,
     )
 
     # Join crimes_df with pop_df
@@ -166,14 +175,20 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
 
 
     # Write processed data to .csv files
+    
+    filename, _ = os.path.splitext(filename)
 
     # Processed data
     writeToFile(crimes_df, f'{filename}_Processed.csv', file_path = file_path)
 
     # File path to write sorted .csv files
-    csv_file_path = os.path.join(file_path, 'CSVs')
+    csv_file_path = filePath('CSVs', file_path = file_path)
     if not os.path.isdir(csv_file_path):
         os.makedirs(csv_file_path)
+        write_new_csvs = True
+
+    if not (os.path.isfile(f'{filename}_All_Crimes_Sorted.csv') and
+            os.path.isfile(f'{filename}_All_Crimes_Totals_Sorted.csv')):
         write_new_csvs = True
     
     if write_new_csvs:
@@ -207,27 +222,64 @@ def getCrimeData(filename, file_path = '', sheet_name = 'Data', include_sub_crim
             file_path = csv_file_path,
         )
 
-        # Separate files for each crime
+        '''# Separate files for each crime
         for crime in crimes_df['Crime'].unique():
             writeToFile(
                 crimes_df_sorted[crimes_df_sorted['Crime'] == crime],
                 f'{filename}_{crime}_Sorted.csv',
                 file_path = csv_file_path,
-            )
+            )'''
 
+    return crimes_df
+
+
+# Function for getting processed crime data
+
+def getCrimeData(filename, file_path = 'assets', sheet_name = 'Data', include_sub_crimes = False,
+                 get_csv = True, download = False, check_first = True, write_new_csvs = False):
+    
+    print("getCrimeData()")
+    
+    write_new_csvs = download
+
+    filename = filePath(filename, file_path = file_path)
+    root, _ = os.path.splitext(filename)
+    processed_filename = f'{root}_Processed.csv'
+
+    processing_update, download_update = write_new_csvs, download
+
+    if check_first:
+        processing_update, download_update = checkDatasetUpdate(filename, processed_filename = processed_filename)
+
+    if not (processing_update or download_update):
+        crimes_df = readData(processed_filename)
+        print(f"Data file {processed_filename} loaded.")
+    
+    else:
+        if download_update:
+            downloadDataset(filename, check_first = False)
+        
+        # Load crime dataset
+        crimes_df = processCrimeData(
+            filename,
+            sheet_name = sheet_name,
+            get_csv = get_csv,
+        )
+        print(f"Data file {filename} loaded and pre-processed.")
 
     return crimes_df
 
 
 # Function for getting crime counts for a region
 
-def getCrimeCounts(df, group_by = [], sort = True, sort_by = [], area_scale = 'District', area = None, ascending = False):
+def getCrimeCounts(df, group_by = [], sort = True, sort_by = [], area_scale = 'District',
+                   area = None, ascending = False):
 
     if area:
         df = df[df[area_scale].str.contains(area.upper())]
     
-    for i in [area_scale, 'Crime']:
-        if i not in group_by:
+    for i in [area_scale, f'{area_scale}_Name', 'Crime']:
+        if i in df.columns and i not in group_by:
             group_by = group_by + [i]
     
     if 'Count_Per_100' not in sort_by:

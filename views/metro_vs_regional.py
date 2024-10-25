@@ -35,7 +35,15 @@ crimes_df[f'{area_scale}_Name'] = crimes_df[area_scale].apply(lambda x: x.split(
 crimes_df_total[f'{area_scale}_Name'] = crimes_df_total[area_scale].apply(lambda x: x.split()[0].title())
 crimes_df_over_time[f'{area_scale}_Name'] = crimes_df_over_time[area_scale].apply(lambda x: x.split()[0].title())
 
-crime_order = crimes_df_total['Crime'].unique()[::-1]
+#crime_order = crimes_df_total['Crime'].unique()[::-1]
+
+crime_order = crimes_df_total[['Crime', 'Count_Per_100']].groupby(
+    by = 'Crime',
+    observed = False,
+    as_index = False,
+).mean().sort_values(
+    by = 'Count_Per_100'
+)['Crime'].unique()[::-1]
 
 x_min = crimes_df_total['Count_Per_100'].min()
 x_max = crimes_df_total['Count_Per_100'].max()

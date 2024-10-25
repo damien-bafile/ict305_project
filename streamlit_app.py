@@ -25,9 +25,9 @@ about_page = st.Page(
     default=True,
 )
 
-crime_over_population_page = st.Page(
-    page="views/crime_over_population.py",
-    title="Test Homicide Bokem Graph",
+crime_map_page = st.Page(
+    page="views/crime_map.py",
+    title="Crime Map",
     icon="📈",
 )
 
@@ -37,7 +37,7 @@ crime_over_time_page = st.Page(
 
 crime_total_wa_page = st.Page(
     page="views/crime_total_wa.py",
-    title="Crime for all of WA",
+    title="Crime for All of WA",
     icon="📈",
 )
 
@@ -53,26 +53,21 @@ crime_by_district_page = st.Page(
     icon="📈",
 )
 
-entertainment_page = st.Page(
-    page="views/entertainment_crime.py",
-    title="Crime in Entertainment Areas",
-    icon="📈",
-)
-
 # --- NAVIGATION SETUP ---
 pg = st.navigation(
     {
         "Info": [about_page],
         "Visualizations": [
-            crime_over_population_page,
+            crime_map_page,
             crime_over_time_page,
             crime_total_wa_page,
             metro_vs_regional_page,
             crime_by_district_page,
-            entertainment_page,
         ],
     }
 )
+
+st.set_page_config(layout='wide')
 
 # -- COMMON ASSETS ---
 st.sidebar.text("Created by Machine Masters 🤖")

@@ -22,7 +22,14 @@ from helpers.FileIO import *
 
 # Function for downloading ABS data
 
-def downloadABSData(geographies, file_path = '', year = 2021, download_zips = False, check_first = True):
+def downloadABSData(geographies, file_path = 'assets', abs_data_file_path = 'ABS_Data',
+                    year = 2021, download_zips = False, check_first = True):
+    
+    print("downloadABSData()")
+    
+    file_path = filePath(abs_data_file_path, file_path = file_path)
+    
+    downloaded = False
     
     if not os.path.isdir(file_path):
         os.makedirs(file_path)
@@ -42,46 +49,61 @@ def downloadABSData(geographies, file_path = '', year = 2021, download_zips = Fa
 
     # Download Allocation Files
     for filename in af_filenames:
-        if not os.path.isfile(os.path.join(file_path, filename)):
+        full_filename = filePath(filename, file_path = file_path)
+        if not os.path.isfile(full_filename):
             print(f"Downloading {filename}...")
             response = session.get(f'{af_url}/{filename}')
-            with open(os.path.join(file_path, filename), 'wb') as f:
+            with open(full_filename, 'wb') as f:
                 f.write(response.content)
+                downloaded = True
         else:
             print(f"{filename} already downloaded.")
 
     # Download Census DataPacks
     for (filename, member_name) in zip(dp_zip_filenames, dp_filenames):
-
-        zip_exists = os.path.isfile(os.path.join(file_path, filename))
-        member_exists = os.path.isfile(os.path.join(file_path, member_name))
+        
+        full_filename = filePath(filename, file_path = file_path)
+        member_filename = filePath(member_name, file_path = file_path)
+        zip_exists = os.path.isfile(full_filename)
+        member_exists = os.path.isfile(member_filename)
 
         if not ((zip_exists or not download_zips) and member_exists):
             print(f"Downloading {member_name} from {filename}...")
             response = session.get(f'{dp_url}/{filename}')
 
-        if download_zips and not zip_exists:
-            print(f"Downloading {filename}...")
-            with open(os.path.join(file_path, filename), 'wb') as f:
-                f.write(response.content)
-        else:
-            print(f"{filename} already downloaded.")
-            download_zips = False
+        if download_zips:
+            if not zip_exists:
+                print(f"Downloading {filename}...")
+                with open(full_filename, 'wb') as f:
+                    f.write(response.content)
+                    downloaded = True
+            else:
+                print(f"{filename} already downloaded.")
+                download_zips = False
         
         if download_zips or not member_exists:
             print(f"Downloading {member_name}...")
             with ZipFile(BytesIO(response.content)) as z:
                 member_path = [x for x in z.namelist() if x.endswith(member_name)][0]
-                with open(os.path.join(file_path, member_name), 'wb') as f:
+                member_filename = filePath(member_name, file_path = file_path)
+                with open(member_filename, 'wb') as f:
                     f.write(z.read(member_path))
+                    downloaded = True
         else:
             print(f"{member_name} already downloaded.")
+    
+    return downloaded
 
 
 # Function for loading ABS data
 
-def loadABSData(file_path = '', geographies = [], year = 2021, get_csv = True, download = False):
+def loadABSData(file_path = 'assets', abs_data_file_path = 'ABS_Data', geographies = [],
+                year = 2021, get_csv = True, download = False):
 
+    print("loadABSData()")
+    
+    file_path = filePath(abs_data_file_path, file_path = file_path)
+    
     dfs = dict.fromkeys(geographies)
 
     # Allocation Files (for retrieving codes)
@@ -91,7 +113,9 @@ def loadABSData(file_path = '', geographies = [], year = 2021, get_csv = True, d
     dp_filenames = [f'{year}Census_G01_WA_{g}.csv' for g in geographies]
 
     for filename in af_filenames + dp_filenames:
-        if not os.path.isfile(os.path.join(file_path, filename)):
+        filename, _ = filePath(filename, file_path = file_path, split_ext = True)
+        print(filename)
+        if not os.path.isfile(f'{filename}.csv'):
             download = True
             break
 
@@ -154,21 +178,25 @@ def getPopulations(df, geography_df, geography):
 
 # Function for getting population data using ABS data
 
-def getPopulationData(filename, file_path = '', geographies = [], year = 2021, get_csv = True, download = False):
+def getPopulationData(filename, file_path = 'assets', abs_data_file_path = 'ABS_Data',
+                      geographies = [], year = 2021, get_csv = True, download = False):
 
+    print("getPopulationData()")
+    
     # Read data from files
 
     # Folder for data related to population
-    abs_data_file_path = os.path.join(file_path, 'ABS_Data')
+    abs_data_file_path = filePath(abs_data_file_path, file_path = file_path)
     if not os.path.isdir(abs_data_file_path):
         os.makedirs(abs_data_file_path)
         download = True
 
     ## Relevant areas
-    df = readData(filename, file_path = file_path, get_csv = get_csv)
+    filename = filePath(filename, file_path = file_path)
+    df = readData(filename, get_csv = get_csv)
     
     if download:
-        downloadABSData(geographies, file_path = file_path, year = year)
+        downloadABSData(geographies, file_path = abs_data_file_path, year = year)
 
     # ABS data
     dfs = loadABSData(

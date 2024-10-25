@@ -12,6 +12,7 @@ import os
 
 from helpers.CrimeData import downloadDataset, getCrimeData
 from helpers.PopulationData import downloadABSData
+from helpers.FileIO import *
 
 
 # Function to download data
@@ -19,27 +20,29 @@ from helpers.PopulationData import downloadABSData
 def downloadData(filename = 'data.xlsx', file_path = 'assets', abs_file_path = 'ABS_Data',
                  geographies = ['LGA', 'SA3', 'SAL'], year = 2021, check_first = True):
     
-    if os.path.dirname(filename) == file_path:
-        filename = os.path.basename(filename)
+    print("downloadData()")
     
-    if os.path.dirname(abs_file_path) != file_path:
-        abs_file_path = os.path.join(file_path, abs_file_path)
+    filename = filePath(filename, file_path = file_path)
+    abs_file_path = filePath(abs_file_path, file_path = file_path)
     
-    downloadDataset(filename, file_path = file_path, check_first = check_first)
-    downloadABSData(geographies, file_path = abs_file_path, year = year, check_first = check_first)
+    dataset_downloaded = downloadDataset(filename, check_first = check_first)
+    abs_data_downloaded = downloadABSData(geographies, file_path = abs_file_path, year = year, check_first = check_first)
+    
+    if dataset_downloaded or abs_data_downloaded:
+        loadData(filename = filename)
 
 
 # Function to load and process data
 
-def loadData(filename = 'data', file_path = 'assets', sheet_name = 'Data', get_csv = True,
+def loadData(filename = 'data.xlsx', file_path = 'assets', sheet_name = 'Data', get_csv = True,
              download = False, write_new_csvs = True):
+    
+    print("loadData()")
 
-    if os.path.dirname(filename) == file_path:
-        filename = os.path.basename(filename)
+    filename = filePath(filename, file_path = file_path)
 
     crimes_df = getCrimeData(
         filename,
-        file_path = file_path,
         sheet_name = sheet_name,
         get_csv = get_csv,
         download = download,
