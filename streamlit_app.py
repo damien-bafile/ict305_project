@@ -69,7 +69,7 @@ pg = st.navigation(
 
 st.set_page_config(layout='wide')
 
-# -- COMMON ASSETS ---
+# --- COMMON ASSETS ---
 st.sidebar.text("Created by Machine Masters 🤖")
 st.logo("assets/Police-logo-240-2021.png")
 st.sidebar.download_button(
@@ -79,8 +79,8 @@ st.sidebar.download_button(
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     help="Download the dataset for you own use",
 )
-# -- DOWNLOAD DATASET ---
+# --- DOWNLOAD DATASET ---
 downloadData()
 
-# -- RUN NAVIGATION ---
+# --- RUN NAVIGATION ---
 pg.run()

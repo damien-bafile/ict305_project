@@ -4,29 +4,32 @@ import plotly.express as px
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 from helpers.DataLoading import loadData
 from helpers.CrimeData import getCrimeCounts
 
 
 @st.cache_data
-def load_data():
-    
-    # Load the data from the Excel file (this assumes you have the file in the same directory)
-    #filename = 'data'
-    #file_path = 'assets'
-
-    # Load 'Data' sheet
-    crimes_df = loadData()
-    
+def load_data(filename, file_path, sheet_name):
+    crimes_df = loadData(filename, file_path, sheet_name)
     return crimes_df
 
 
 area_scale = 'State'
 
-crimes_df = load_data()
+
+# Title of the app
+st.title("Crime for All of WA")
+
+# Figure container margins
+_, centre, _ = st.columns([0.05, 0.9, 0.05])
+
+# Load the data from the Excel file (this assumes you have the file in the same directory)
+filename = 'data.xlsx'
+file_path = 'assets'
+sheet_name = 'Data'
+
+crimes_df = load_data(filename, file_path, sheet_name)
+
 crimes_df[f'{area_scale}_Name'] = crimes_df[area_scale].apply(lambda x: x.title())
 
 crimes_df_total = getCrimeCounts(crimes_df, area_scale = area_scale, ascending = True)
@@ -41,11 +44,7 @@ x_time_min = crimes_df_over_time['Count_Per_100'].min()
 x_time_max = crimes_df_over_time['Count_Per_100'].max()
 
 
-st.title("Crime for All of WA")
-
-l_margin, centre, r_margin = st.columns([0.1, 0.8, 0.1])
-
-with centre:    
+with centre:
 
     # Bar chart
 
@@ -55,14 +54,14 @@ with centre:
         y = 'Crime',
         category_orders = {'Crime': crime_order},
         barmode = 'group',
-        range_x = [x_min, x_max],
+        #range_x = [x_min, x_max],
         text_auto = '.2f',
         title = 'Total Number of Crimes for All of WA (2007-2024)',
-        width = 1000,
+        width = 700,
         height = 600,
     )
 
-    st.plotly_chart(fig, use_container_width = False)
+    st.plotly_chart(fig, use_container_width = True)
 
 
     # Bar chart over time (continuous ranking)
@@ -75,7 +74,7 @@ with centre:
         animation_group = 'Crime',
         #category_orders = {'Crime': crime_order},
         barmode = 'group',
-        range_x = [x_time_min, x_time_max],
+        #range_x = [x_time_min, x_time_max],
         title = 'Total Number of Crimes for All of WA Over Time (2007-2024)',
         width = 700,
         height = 600,
@@ -91,10 +90,7 @@ with centre:
                             {
                                 'frame': {'duration': 900},
                                 'fromcurrent': True,
-                                'transition': {
-                                    'duration': 200,
-                                    'easing': 'quadratic-in-out',
-                                },
+                                'transition': {'duration': 200, 'easing': 'quadratic-in-out'},
                             },
                         ],
                         'method': 'animate',
@@ -128,7 +124,7 @@ with centre:
         animation_group = 'Crime',
         category_orders = {'Crime': crime_order},
         barmode = 'group',
-        range_x = [x_time_min, x_time_max],
+        #range_x = [x_time_min, x_time_max],
         title = 'Total Number of Crimes for All of WA Over Time (2007-2024)',
         width = 700,
         height = 600,

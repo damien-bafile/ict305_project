@@ -1,103 +1,83 @@
 import streamlit as st
+import plotly.express as px
 import pandas as pd
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
+from catppuccin import PALETTE
+
+from helpers.DataLoading import loadData
+from helpers.CrimeData import getCrimeCounts
 
 
 @st.cache_data
-def load_data():
-    # Load the data from the Excel file (this assumes you have the file in the same directory)
-    file_path = "assets/data.xlsx"
-
-    # Load the "Western Australia" sheet, skipping metadata rows
-    wa_data = pd.read_excel(file_path, sheet_name="Western Australia", skiprows=6)
-    return wa_data
+def load_data(filename, file_path, sheet_name):
+    crimes_df = loadData(filename, file_path, sheet_name)
+    return crimes_df
 
 
-homicide_data = load_data()
-# Extract relevant homicide columns
-homicide_data = homicide_data[
-    ["Unnamed: 0", "Homicide", "Unnamed: 2", "Unnamed: 3", "Unnamed: 4", "Unnamed: 5"]
-]
-homicide_data.columns = [
-    "Month and Year",
-    "Homicide Total",
-    "Murder",
-    "Attempted / Conspiracy to Murder",
-    "Manslaughter",
-    "Driving Causing Death",
-]
+# Title of the app
+st.title("Crime Over Time")
 
-# Convert 'Month and Year' to datetime
-homicide_data.loc[:, "Month and Year"] = pd.to_datetime(
-    homicide_data["Month and Year"], format="%Y-%m=%d", errors="coerce"
-)
+# Figure container margins
+_, centre, _ = st.columns([0.05, 0.9, 0.05])
 
-# Remove rows where 'Month and Year' is NaT (invalid dates)
-homicide_data = homicide_data.dropna()
+# Colour palette
+colours = [colour.hex for colour in PALETTE.latte.colors]
 
-# Set up data for Bokeh
-source = ColumnDataSource(homicide_data)
+# Load the data from the Excel file (this assumes you have the file in the same directory)
+filename = 'data.xlsx'
+file_path = 'assets'
+sheet_name = 'Data'
+area_scale = 'State'
 
-# Output in Jupyter Notebook
-# output_notebook()
+crimes_df = load_data(filename, file_path, sheet_name)
 
-# Create a figure
-p = figure(
-    x_axis_type="datetime",
-    title="Homicide Data in Western Australia",
-    width=800,
-    height=400,
-    x_axis_label="Month and Year",
-    y_axis_label="Number of Cases",
-)
+crimes_df[f'{area_scale}_Name'] = crimes_df[area_scale].apply(lambda x: ''.join(x.split()[:-1]).title())
+crimes_df_total = getCrimeCounts(crimes_df, area_scale = area_scale, ascending = True)
+crimes_df_over_time_year = getCrimeCounts(crimes_df, group_by = ['Year'], sort = False, area_scale = area_scale)
+crimes_df_over_time_period = getCrimeCounts(crimes_df, group_by = ['Period'], sort = False, area_scale = area_scale)
 
-# Add multiple lines for different types of homicide data
-p.line(
-    "Month and Year",
-    "Homicide Total",
-    source=source,
-    legend_label="Homicide Total",
-    color="blue",
-    line_width=2,
-)
-p.line(
-    "Month and Year",
-    "Murder",
-    source=source,
-    legend_label="Murder",
-    color="red",
-    line_width=2,
-)
-p.line(
-    "Month and Year",
-    "Attempted / Conspiracy to Murder",
-    source=source,
-    legend_label="Attempted / Conspiracy to Murder",
-    color="green",
-    line_width=2,
-)
-p.line(
-    "Month and Year",
-    "Manslaughter",
-    source=source,
-    legend_label="Manslaughter",
-    color="orange",
-    line_width=2,
-)
-p.line(
-    "Month and Year",
-    "Driving Causing Death",
-    source=source,
-    legend_label="Driving Causing Death",
-    color="purple",
-    line_width=2,
-)
+areas = crimes_df_total[area_scale].unique()
+crimes = crimes_df_total['Crime'].unique()
+crime_order = crimes[::-1]
 
-# Customize the legend
-p.legend.location = "top_left"
-p.legend.click_policy = "hide"
+x_min = crimes_df_total['Count_Per_100'].min()
+x_max = crimes_df_total['Count_Per_100'].max()
+x_time_min = crimes_df_over_time_year['Count_Per_100'].min()
+x_time_max = crimes_df_over_time_year['Count_Per_100'].max()
 
-st.write("# WA Homicide Data")
 
-st.bokeh_chart(p, use_container_width=False)
+with centre:
+
+    # Line plot with dropdown menu
+    fig = px.line(
+        crimes_df_over_time_year,
+        x = 'Year',
+        y = 'Count_Per_100',
+        line_group = 'Crime',
+        color = 'Crime',
+        color_discrete_sequence = colours,
+        width = 700,
+        height = 550,
+    )
+
+    st.write("Select or deselect crime categories in legend to restrict display.")
+    st.plotly_chart(fig, use_container_width = True, theme = 'streamlit')
+    st.divider()
+    
+    
+    # Line plot with dropdown menu
+    fig = px.line(
+        crimes_df_over_time_period,
+        x = 'Period',
+        y = 'Count_Per_100',
+        line_group = 'Crime',
+        color = 'Crime',
+        color_discrete_sequence = colours,
+        width = 700,
+        height = 550,
+    )
+
+    st.write("Select or deselect crime categories in legend to restrict display.")
+    st.plotly_chart(fig, use_container_width = True, theme = 'streamlit')
+    st.divider()

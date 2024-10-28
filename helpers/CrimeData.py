@@ -15,9 +15,9 @@ import numpy as np
 import pandas as pd
 import requests
 from bs4 import SoupStrainer
-
-from calendar import timegm
 from datetime import datetime
+from calendar import timegm
+from time import time
 
 from helpers.FileIO import *
 from helpers.PopulationData import getPopulationData
@@ -27,11 +27,9 @@ from helpers.PopulationData import getPopulationData
 
 def checkDatasetUpdate(filename, processed_filename = None):
 
-    print("checkDatasetUpdate()")
+    t0 = time()
     
     url = "https://www.wa.gov.au/organisation/western-australia-police-force/crime-statistics#/start"
-
-    filename = filePath(filename)
 
     download_update = not os.path.isfile(filename)
 
@@ -42,11 +40,17 @@ def checkDatasetUpdate(filename, processed_filename = None):
 
         # True if webpage has been updated since last dataset download
         download_update = last_update > file_mtime
-    
-    processing_update = download_update or checkFileUpdate(filename, processed_filename = processed_filename)
-    
-    if processing_update:
-        print(f"Data file {filename} updated on website.")
+        
+    processing_update = download_update
+        
+    if not processing_update:
+        processing_update = checkFileUpdate(
+            filename,
+            processed_filename = processed_filename,
+        )
+
+    t1 = time()
+    print("checkDatasetUpdate(): %.3fs" % (t1 - t0))
 
     return processing_update, download_update
 
@@ -55,40 +59,42 @@ def checkDatasetUpdate(filename, processed_filename = None):
 
 def downloadDataset(filename, file_path = 'assets', check_first = True):
 
-    print("downloadDataset()")
+    t0 = time()
     
-    download, downloaded = True, False
     url = "https://www.wa.gov.au/media/48429/download?inline?inline="
     filename, _ = filePath(filename, file_path = file_path, split_ext = True)
     filename = f'{filename}.xlsx'
 
     if check_first:
         _, download_update = checkDatasetUpdate(filename)
-        download = download_update
+    else:
+        download_update = True
 
-    if download:
+    if download_update:
         print(f"Downloading {filename} dataset...")
         response = requests.get(url)
         with open(filename, 'wb') as f:
             f.write(response.content)
-            downloaded = True
     else:
         print("Dataset already downloaded.")
+
+    t1 = time()
+    print("downloadDataset(): %.3fs" % (t1 - t0))
         
-    return downloaded
+    return download_update
 
 
 # Function for loading crime dataset
 
-def loadCrimeData(filename, file_path = 'assets', sheet_name = 'Data', get_csv = True, download = False):
+def loadCrimeData(filename, file_path = 'assets', sheet_name = 'Data', get_csv = True):
 
-    print("loadCrimeData()")
+    t0 = time()
 
     filename, _ = filePath(filename, file_path = file_path, split_ext = True)
     filename = f'{filename}.xlsx'
     exists = os.path.isfile(filename)
 
-    if download or not exists:
+    if not exists:
         downloadDataset(filename, check_first = exists)
     
     df = readData(
@@ -97,15 +103,18 @@ def loadCrimeData(filename, file_path = 'assets', sheet_name = 'Data', get_csv =
         get_csv = get_csv,
     )
 
+    t1 = time()
+    print("loadCrimeData(): %.3fs" % (t1 - t0))
+
     return df
 
 
 # Function for processing crime data
 
 def processCrimeData(filename, file_path = 'assets', sheet_name = 'Data', include_sub_crimes = False,
-                     get_csv = True, write_new_csvs = True):
+                     geographies = ['LGA', 'SA3', 'SAL'], year = 2021, get_csv = True):
     
-    print("processCrimeData()")
+    t0 = time()
     
     file_path, filename = filePath(filename, file_path = file_path, split = True)
 
@@ -158,8 +167,9 @@ def processCrimeData(filename, file_path = 'assets', sheet_name = 'Data', includ
     # Get population data
     pop_df = getPopulationData(
         'RegionListing.csv',
+        geographies = geographies,
+        year = year,
         file_path = file_path,
-        geographies = ['LGA', 'SA3', 'SAL'],
         get_csv = get_csv,
     )
 
@@ -185,50 +195,47 @@ def processCrimeData(filename, file_path = 'assets', sheet_name = 'Data', includ
     csv_file_path = filePath('CSVs', file_path = file_path)
     if not os.path.isdir(csv_file_path):
         os.makedirs(csv_file_path)
-        write_new_csvs = True
-
-    if not (os.path.isfile(f'{filename}_All_Crimes_Sorted.csv') and
-            os.path.isfile(f'{filename}_All_Crimes_Totals_Sorted.csv')):
-        write_new_csvs = True
     
-    if write_new_csvs:
 
-        print("Writing new .csv files...")
+    print("Writing new .csv files...")
+
+    # 1 file sorted by date -> disrict -> crime
+    crimes_df_sorted = crimes_df.sort_values(
+        by = ['Period', 'District', 'Crime'],
+        ignore_index = True,
+    )
+    writeToFile(
+        crimes_df_sorted,
+        f'{filename}_All_Crimes_Sorted.csv',
+        file_path = csv_file_path,
+    )
     
-        # 1 file sorted by date -> disrict -> crime
-        crimes_df_sorted = crimes_df.sort_values(
-            by = ['Period', 'District', 'Crime'],
-            ignore_index = True,
-        )
+    # 1 file grouped by crime
+    crimes_df_sorted_totals = crimes_df_sorted.drop(columns = ['Period', 'Month', 'Year'])
+    crimes_df_sorted_totals = crimes_df_sorted_totals.groupby(
+        by = [x for x in crimes_df_sorted_totals.columns if not x.startswith('Count')],
+        observed = False,
+        as_index = False,
+    ).sum().sort_values(
+        by = 'Count_Per_100',
+        ascending = False,
+    )
+    writeToFile(
+        crimes_df_sorted_totals,
+        f'{filename}_All_Crimes_Totals_Sorted.csv',
+        file_path = csv_file_path,
+    )
+
+    '''# Separate files for each crime
+    for crime in crimes_df['Crime'].unique():
         writeToFile(
-            crimes_df_sorted,
-            f'{filename}_All_Crimes_Sorted.csv',
+            crimes_df_sorted[crimes_df_sorted['Crime'] == crime],
+            f'{filename}_{crime}_Sorted.csv',
             file_path = csv_file_path,
-        )
+        )'''
         
-        # 1 file grouped by crime
-        crimes_df_sorted_totals = crimes_df_sorted.drop(columns = ['Period', 'Month', 'Year'])
-        crimes_df_sorted_totals = crimes_df_sorted_totals.groupby(
-            by = [x for x in crimes_df_sorted_totals.columns if not x.startswith('Count')],
-            observed = False,
-            as_index = False,
-        ).sum().sort_values(
-            by = 'Count_Per_100',
-            ascending = False,
-        )
-        writeToFile(
-            crimes_df_sorted_totals,
-            f'{filename}_All_Crimes_Totals_Sorted.csv',
-            file_path = csv_file_path,
-        )
-
-        '''# Separate files for each crime
-        for crime in crimes_df['Crime'].unique():
-            writeToFile(
-                crimes_df_sorted[crimes_df_sorted['Crime'] == crime],
-                f'{filename}_{crime}_Sorted.csv',
-                file_path = csv_file_path,
-            )'''
+    t1 = time()
+    print("processCrimeData(): %.3fs" % (t1 - t0))
 
     return crimes_df
 
@@ -236,22 +243,24 @@ def processCrimeData(filename, file_path = 'assets', sheet_name = 'Data', includ
 # Function for getting processed crime data
 
 def getCrimeData(filename, file_path = 'assets', sheet_name = 'Data', include_sub_crimes = False,
-                 get_csv = True, download = False, check_first = True, write_new_csvs = False):
+                 geographies = ['LGA', 'SA3', 'SAL'], year = 2021, get_csv = True, check_first = True):
     
-    print("getCrimeData()")
+    t0 = time()
     
-    write_new_csvs = download
-
     filename = filePath(filename, file_path = file_path)
     root, _ = os.path.splitext(filename)
     processed_filename = f'{root}_Processed.csv'
 
-    processing_update, download_update = write_new_csvs, download
-
     if check_first:
-        processing_update, download_update = checkDatasetUpdate(filename, processed_filename = processed_filename)
+        processing_update, download_update = checkDatasetUpdate(
+            filename,
+            processed_filename = processed_filename,
+        )
+    else:
+        processing_update, download_update = True, True
 
     if not (processing_update or download_update):
+        # Load pre-processed crime dataset
         crimes_df = readData(processed_filename)
         print(f"Data file {processed_filename} loaded.")
     
@@ -259,13 +268,19 @@ def getCrimeData(filename, file_path = 'assets', sheet_name = 'Data', include_su
         if download_update:
             downloadDataset(filename, check_first = False)
         
-        # Load crime dataset
+        # Load and pre-process crime dataset
         crimes_df = processCrimeData(
             filename,
             sheet_name = sheet_name,
+            include_sub_crimes = include_sub_crimes,
+            geographies = geographies,
+            year = year,
             get_csv = get_csv,
         )
         print(f"Data file {filename} loaded and pre-processed.")
+
+    t1 = time()
+    print("getCrimeData(): %.3fs" % (t1 - t0))
 
     return crimes_df
 
@@ -274,12 +289,14 @@ def getCrimeData(filename, file_path = 'assets', sheet_name = 'Data', include_su
 
 def getCrimeCounts(df, group_by = [], sort = True, sort_by = [], area_scale = 'District',
                    area = None, ascending = False):
+    
+    t0 = time()
 
     if area:
         df = df[df[area_scale].str.contains(area.upper())]
     
     for i in [area_scale, f'{area_scale}_Name', 'Crime']:
-        if i in df.columns and i not in group_by:
+        if (i in df.columns) and (i not in group_by):
             group_by = group_by + [i]
     
     if 'Count_Per_100' not in sort_by:
@@ -296,5 +313,8 @@ def getCrimeCounts(df, group_by = [], sort = True, sort_by = [], area_scale = 'D
             by = sort_by,
             ascending = ascending,
         )
+
+    t1 = time()
+    print("getCrimeCounts(): %.3fs" % (t1 - t0))
     
     return df

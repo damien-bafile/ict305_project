@@ -11,35 +11,46 @@ Eren Stannard - 34189185
 import os
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 import json
 import geojson
+from bs4 import BeautifulSoup
+from time import time
 
 
 # Function for getting file path
 
-def filePath(filename, file_path = '', ext = False, split = False, split_ext = False):
-    
-    split_ext = split_ext and not ext
+def filePath(filename, file_path = '', split = False, split_ext = False):
 
-    if ((os.path.dirname(filename) != file_path) and
-        ((filename != file_path) and
-         (filename != os.path.basename(file_path)))):
-        filename = os.path.join(file_path, filename)
-    else:
-        if filename == os.path.basename(file_path):
+    #t0 = time()
+    #print("filePath()")
+
+    if len(file_path) != 0:
+        name_in_path = filename == os.path.basename(file_path)
+        if name_in_path:
             filename = file_path
+        else:
+            common_path = os.path.commonpath([file_path, filename])
+            if len(common_path) == 0:
+                filename = os.path.join(file_path, filename)
+            else:
+                path_in_name = file_path == os.path.dirname(filename)
+                same_path = filename == file_path
+                if not (path_in_name or same_path):
+                    filename = os.path.join(file_path, filename)
 
-    if split_ext and split:
-        head, tail = os.path.split(filename)
-        root, ext = os.path.splitext(tail)
-        filename = (head, root, ext)
-
-    else:
-        if split_ext:
-            filename = os.path.splitext(filename)
-        if split:
-            filename = os.path.split(filename)
+    if split_ext or split:
+        if split_ext and split:
+            head, tail = os.path.split(filename)
+            root, ext = os.path.splitext(tail)
+            filename = (head, root, ext)
+        else:
+            if split_ext:
+                filename = os.path.splitext(filename)
+            else:
+                filename = os.path.split(filename)
+    
+    #t1 = time()
+    #print("filePath(): %.3fs" % (t1 - t0))
 
     return filename
 
@@ -48,7 +59,7 @@ def filePath(filename, file_path = '', ext = False, split = False, split_ext = F
 
 def getHTMLData(url, href = None, session = None, features = 'lxml', parse_only = None):
 
-    print("getHTMLData()")
+    t0 = time()
 
     if href:
         url += href
@@ -64,6 +75,9 @@ def getHTMLData(url, href = None, session = None, features = 'lxml', parse_only 
         parse_only = parse_only,
     )
 
+    t1 = time()
+    print("getHTMLData(): %.3fs" % (t1 - t0))
+
     return soup
 
 
@@ -71,9 +85,7 @@ def getHTMLData(url, href = None, session = None, features = 'lxml', parse_only 
 
 def checkFileUpdate(filename, processed_filename = None):
 
-    print("checkFileUpdate()")
-
-    filename = filePath(filename)
+    t0 = time()
     
     if not processed_filename:
         root, _ = os.path.splitext(filename)
@@ -88,6 +100,9 @@ def checkFileUpdate(filename, processed_filename = None):
         
     if processing_update:
         print(f"Data file {filename} updated.")
+    
+    t1 = time()
+    print("checkFileUpdate(): %.3fs" % (t1 - t0))
 
     return processing_update
 
@@ -97,9 +112,8 @@ def checkFileUpdate(filename, processed_filename = None):
 def getCSV(filename, sheet_name = 0, skiprows = None, na_values = None, usecols = None,
            dtype = None, header = 0):
     
-    print("getCSV()")
-    
-    filename = filePath(filename)
+    t0 = time()
+
     root, _ = os.path.splitext(filename)
 
     csv_filename = f'{root}.csv'
@@ -125,15 +139,18 @@ def getCSV(filename, sheet_name = 0, skiprows = None, na_values = None, usecols 
     if xlsx or csv:
         filename = csv_filename
 
+    t1 = time()
+    print("getCSV(): %.3fs" % (t1 - t0))
+
     return filename
 
 
 # Function for reading data from a file
 
 def readData(filename, file_path = '', sheet_name = 0, skiprows = None, na_values = None,
-             usecols = None, dtype = None, header = 0, get_csv = False):
+             usecols = None, dtype = None, engine = 'calamine', header = 0, get_csv = False):
     
-    print("readData()")
+    t0 = time()
 
     data = None
     filename = filePath(filename, file_path = file_path)
@@ -154,29 +171,29 @@ def readData(filename, file_path = '', sheet_name = 0, skiprows = None, na_value
                 usecols = usecols, dtype = dtype, header = header,
             )
 
+        print(f"Reading data from {filename}...")
+
         _, ext = os.path.splitext(filename)
 
         match ext:
-
             case '.csv':
                 data = pd.read_csv(filename, **params, low_memory = False)
-
             case '.xlsx':
-                data = pd.read_excel(filename, **params, sheet_name = sheet_name)
-
+                data = pd.read_excel(filename, **params, sheet_name = sheet_name, engine = engine)
             case '.json':
                 with open(filename, 'r') as file:
                     data = json.load(file)
-
             case '.geojson':
                 with open(filename, 'r') as file:
                     data = geojson.load(file)
-
             case _:
                 print(f"Error: Invalid file type '{ext}'.\n")
 
     else:
         print(f"Error: Could not open file '{filename}'.\n")
+    
+    t1 = time()
+    print("readData(): %.3fs" % (t1 - t0))
 
     return data
 
@@ -185,7 +202,7 @@ def readData(filename, file_path = '', sheet_name = 0, skiprows = None, na_value
 
 def writeToFile(data, filename, file_path = '', index = False, columns = None):
 
-    print("writeToFile()")
+    t0 = time()
 
     filename, ext = filePath(filename, file_path = file_path, split_ext = True)
 
@@ -198,5 +215,8 @@ def writeToFile(data, filename, file_path = '', index = False, columns = None):
             print(f"{filename}.xlsx file written.")
         case _:
             print(f"Error: Invalid file type '{ext}'.\n")
+    
+    t1 = time()
+    print("writeToFile(): %.3fs" % (t1 - t0))
 
     return
