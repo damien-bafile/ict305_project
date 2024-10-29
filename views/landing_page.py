@@ -8,7 +8,7 @@ from forms.contact import contact_form
 @st.dialog("Contact Me")
 def show_contact_form():
     contact_form()
-
+# TODO: Add some real text to the front page
 
 # --- HERO SECTION ---
 col1, col2 = st.columns(2, gap="small", vertical_alignment="center")

@@ -108,3 +108,6 @@ ipython_config.py
 .DS_Store
 justfile
 **/__pycache__/
+forms/__pycache__
+assets/*
+forms/__pycache__
