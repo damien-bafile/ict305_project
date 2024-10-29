@@ -6,15 +6,16 @@ import streamlit as st
 
 from helpers.DataLoading import downloadData
 
+
 # Load the data from the Excel file (this assumes you have the file in the same directory)
-#file_path = 'assets'
-#filename = 'data.xlsx'
-#sheet_name = 'Data'
+filename = 'data.xlsx'
+file_path = 'assets'
+sheet_name = 'Data'
 
 # Geographies and year for ABS data to download
-#abs_file_path = os.path.join(file_path, 'ABS_Data')
-#geographies = ['LGA', 'SA3', 'SAL']
-#year = 2021
+abs_file_path = 'ABS_Data'
+geographies = ['LGA', 'SA3', 'SAL']
+year = 2021
 
 
 # --- PAGE SETUP ---
@@ -24,32 +25,29 @@ about_page = st.Page(
     icon="🐷",
     default=True,
 )
-
 crime_map_page = st.Page(
     page="views/crime_map.py",
     title="Crime Map",
     icon="📈",
 )
-
 crime_over_time_page = st.Page(
-    page="views/crime_over_time.py", title="Crime Over Time", icon="📈"
+    page="views/crime_over_time.py",
+    title="Crime Over Time",
+    icon="📈",
 )
-
 crime_total_wa_page = st.Page(
     page="views/crime_total_wa.py",
     title="Crime for All of WA",
     icon="📈",
 )
-
 metro_vs_regional_page = st.Page(
     page="views/metro_vs_regional.py",
     title="Metro vs Regional Crime",
     icon="📈",
 )
-
 crime_by_district_page = st.Page(
     page="views/crime_by_district.py",
-    title="Crime by District",
+    title="Crime per District",
     icon="📈",
 )
 
@@ -67,6 +65,7 @@ pg = st.navigation(
     }
 )
 
+# --- PAGE LAYOUT SETUP ---
 st.set_page_config(layout='wide')
 
 # --- COMMON ASSETS ---
@@ -79,8 +78,15 @@ st.sidebar.download_button(
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     help="Download the dataset for you own use",
 )
+
 # --- DOWNLOAD DATASET ---
-downloadData()
+downloadData(
+    filename,
+    file_path=file_path,
+    abs_file_path=abs_file_path,
+    geographies=geographies,
+    year=year,
+)
 
 # --- RUN NAVIGATION ---
 pg.run()

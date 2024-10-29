@@ -4,42 +4,39 @@ import json
 import pandas as pd
 
 from helpers.DataLoading import loadData
-from helpers.FileIO import *
+from helpers.FileIO import readData, filePath
 
 
 @st.cache_data
-def load_data(filename, file_path, sheet_name):
-    crimes_df = loadData(filename, file_path, sheet_name)
-    return crimes_df
+def load_data(filename, file_path='assets', sheet_name=None):
+    if filename.endswith('.xlsx'):
+        data = loadData(filename, file_path=file_path, sheet_name=sheet_name)
+    else:
+        data = readData(filename, file_path=file_path)
+    return data
 
 
-# Title of the app
+# Title of the page
 st.title("Interactive Crime Map")
-st.divider()
 
 # Figure container margins
 _, centre, _ = st.columns([0.05, 0.9, 0.05])
+
 
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 filename = 'data.xlsx'
 file_path = 'assets'
 sheet_name = 'Data'
-
 #crimes_df = load_data(filename, file_path, sheet_name)
 
-# Load the GeoJSON file for suburbs
-geojson_filename = filePath(
-    'WA Police Force District Boundaries (WAPOL-002).geojson',
-    file_path = file_path,
-)
-
-with open(geojson_filename, 'r') as f:
-    geojson_data_suburbs = json.load(f)
+# Load the GeoJSON file for districts
+geojson_filename = 'WA Police Force District Boundaries (WAPOL-002).geojson'
+geojson_data_suburbs = load_data(geojson_filename, file_path=file_path)
 
 # Load the crime data from the CSV
 totals_sorted_filename = 'data_All_Crimes_Totals_Sorted.csv'
-csv_file_path = filePath('CSVs', file_path)
-crime_data = readData(totals_sorted_filename, csv_file_path)
+csv_file_path = filePath('CSVs', file_path=file_path)
+crime_data = load_data(totals_sorted_filename, file_path=csv_file_path)
 
 # Extract unique crime types
 crime_types = crime_data['Crime'].unique()
@@ -72,7 +69,7 @@ fig = px.choropleth_mapbox(
         'Count_Per_100': True
     },
     width=700,
-    height=600,
+    height=750,
 )
 
 # Create the dropdown menu for crime types
@@ -87,35 +84,38 @@ dropdown_buttons = [
 
 # Add dropdown to the layout
 fig.update_layout(
-    updatemenus=[
+    updatemenus = [
         {
             'buttons': dropdown_buttons,
             'direction': 'down',
             'showactive': True,
-            'pad': {'t': 5},
             'x': 1,
             'xanchor': 'right',
-            'y': 1.1,
-            'yanchor': 'top',
-            'font': {'size': 16},
+            'y': 1,
+            'yanchor': 'bottom',
+            'font': {'size': 12},
+            'pad': {'b': 5, 'r': 1},
         },
     ],
-    annotations=[
+    annotations = [
         {
             'text': 'Select Crime Category:',
             'x': 1,
             'xanchor': 'right',
             'xref': 'paper',
-            'y': 1.15,
-            'yanchor': 'top',
+            'xshift': -270,
+            'y': 1,
+            'yanchor': 'bottom',
             'yref': 'paper',
+            'yshift': 7,
             'showarrow': False,
             'font': {'size': 16},
+            'borderpad': 5,
         },
     ],
-    margin={'t': 75},
 )
 
 # Show the figure
-st.header("Interactive Map of Crime Across WA Police Districts")
+st.header("Interactive Map of WA Police Districts")
+st.subheader("Total Number of Crimes in WA per District (2007-2024)")
 st.plotly_chart(fig, use_container_width = True)

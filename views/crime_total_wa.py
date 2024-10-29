@@ -1,134 +1,111 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource
+from catppuccin import PALETTE
 
 from helpers.DataLoading import loadData
+from helpers.FileIO import readData
 from helpers.CrimeData import getCrimeCounts
 
 
 @st.cache_data
-def load_data(filename, file_path, sheet_name):
-    crimes_df = loadData(filename, file_path, sheet_name)
-    return crimes_df
+def load_data(filename, file_path='assets', sheet_name=None):
+    if filename.endswith('.xlsx'):
+        data = loadData(filename, file_path=file_path, sheet_name=sheet_name)
+    else:
+        data = readData(filename, file_path=file_path)
+    return data
 
 
-area_scale = 'State'
-
-
-# Title of the app
+# Title of the page
 st.title("Crime for All of WA")
-st.divider()
 
 # Figure container margins
 _, centre, _ = st.columns([0.05, 0.9, 0.05])
 
+# Colour palette
+colours = [colour.hex for colour in PALETTE.latte.colors]
+
 # Load the data from the Excel file (this assumes you have the file in the same directory)
-filename = 'data.xlsx'
+filename = 'data_Processed.csv'
 file_path = 'assets'
-sheet_name = 'Data'
+area_scale = 'State'
 
-crimes_df = load_data(filename, file_path, sheet_name)
+crimes_df = load_data(filename, file_path=file_path)
 
-crimes_df[f'{area_scale}_Name'] = crimes_df[area_scale].apply(lambda x: x.title())
+crimes_df['State'] = crimes_df['State'].apply(lambda x: x.title())
+crimes_df['Region'] = crimes_df['Region'].apply(lambda x: x.rsplit(maxsplit=1)[0].title())
+crimes_df['District'] = crimes_df['District'].apply(lambda x: x.rsplit(maxsplit=1)[0].title())
 
-crimes_df_total = getCrimeCounts(crimes_df, area_scale = area_scale, ascending = True)
-crimes_df_over_time = getCrimeCounts(crimes_df, group_by = ['Year'], sort = False, area_scale = area_scale, ascending = True)
-crimes_df_over_time_rank = crimes_df_over_time.sort_values(by = ['Year', 'Count_Per_100'], ascending = [True, True])
+# Time ranges
+year_range = [crimes_df['Year'].min(), crimes_df['Year'].max() - 1]
+period_range = [crimes_df['Period'].min(), crimes_df['Period'].max()]
+st.caption(f"From {period_range[0]} to {period_range[1]}.")
 
-crime_order = crimes_df_total['Crime'].unique()[::-1]
+crimes_df_total = getCrimeCounts(crimes_df, area_scale=area_scale, ascending=True)
+crimes_df_over_time = getCrimeCounts(crimes_df, group_by=['Year'], area_scale=area_scale, sort=False)
+crimes_df_over_time_rank = crimes_df_over_time.sort_values(by=['Year', 'Count_Per_100'], ascending=[True, True])
 
-x_min = crimes_df_total['Count_Per_100'].min()
-x_max = crimes_df_total['Count_Per_100'].max()
-x_time_min = crimes_df_over_time['Count_Per_100'].min()
-x_time_max = crimes_df_over_time['Count_Per_100'].max()
+crimes = crimes_df_total['Crime'].unique()[::-1]
 
 
+# All time
+st.header("All Time")
 
 # Bar chart
-
 fig = px.bar(
     crimes_df_total,
-    x = 'Count_Per_100',
-    y = 'Crime',
-    category_orders = {'Crime': crime_order},
-    barmode = 'group',
-    #range_x = [x_min, x_max],
-    text_auto = '.2f',
-    width = 700,
-    height = 600,
+    x='Count_Per_100',
+    y='Crime',
+    category_orders={'Crime': crimes},
+    color_discrete_sequence=colours,
+    barmode='group',
+    text_auto='.2f',
+    height=600,
 )
-
-st.subheader("Total Number of Crimes for All of WA Over Time (2007-2024)")
-st.plotly_chart(fig, use_container_width = True)
+st.subheader(f"Total Number of Crimes in WA")
+st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
+
+# Over ime
+st.header("Over Time")
 
 # Bar chart over time (continuous ranking)
-
 fig = px.bar(
     crimes_df_over_time_rank,
-    x = 'Count_Per_100',
-    y = 'Crime',
-    animation_frame = 'Year',
-    animation_group = 'Crime',
-    #category_orders = {'Crime': crime_order},
-    barmode = 'group',
-    #range_x = [x_time_min, x_time_max],
-    width = 700,
-    height = 600,
+    x='Count_Per_100',
+    y='Crime',
+    animation_frame='Year',
+    animation_group='Crime',
+    color_discrete_sequence=colours,
+    barmode='group',
+    height=600,
 )
-
-fig.update_layout(
-    updatemenus = [
-        {
-            'buttons': [
-                {
-                    'args': [
-                        None,
-                        {
-                            'frame': {'duration': 900},
-                            'fromcurrent': True,
-                            'transition': {'duration': 200, 'easing': 'quadratic-in-out'},
-                        },
-                    ],
-                    'method': 'animate',
-                },
-                {
-                    'args': [
-                        None,
-                        {
-                            'frame': {'duration': 0},
-                            'mode': 'immediate',
-                            'transition': {'duration': 0},
-                        },
-                    ],
-                    'method': 'animate',
-                },
-            ],
-        },
-    ],
-)
-
-st.subheader("Total Number of Crimes for All of WA Over Time (2007-2024) with Continuous Ranking")
-st.plotly_chart(fig, use_container_width = True)
-st.divider()
-
-
-# Bar chart over time
-
-fig = px.bar(
-    crimes_df_over_time,
-    x = 'Count_Per_100',
-    y = 'Crime',
-    animation_frame = 'Year',
-    animation_group = 'Crime',
-    category_orders = {'Crime': crime_order},
-    barmode = 'group',
-    width = 700,
-    height = 600,
-)
-
-st.subheader("Total Number of Crimes for All of WA Over Time (2007-2024)")
-st.plotly_chart(fig, use_container_width = True)
+buttons = [
+    {
+        'args': [
+            None,
+            {
+                'frame': {'duration': 900},
+                'fromcurrent': True,
+                'transition': {'duration': 300, 'easing': 'quadratic-in-out'},
+            },
+        ],
+        'method': 'animate',
+    },
+    {
+        'args': [
+            None,
+            {
+                'frame': {'duration': 0},
+                'mode': 'immediate',
+                'transition': {'duration': 0},
+            },
+        ],
+        'method': 'animate',
+    },
+]
+fig.update_layout(updatemenus=[{'buttons': buttons}])
+st.subheader("Total Number of Crimes in WA Over Time (per Year) With Continuous Ranking")
+st.plotly_chart(fig, use_container_width=True)
