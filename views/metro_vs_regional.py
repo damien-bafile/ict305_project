@@ -22,9 +22,10 @@ area_scale = 'Region'
 
 # Title of the app
 st.title(f"Crime by {area_scale}")
+st.divider()
 
 # Figure container margins
-_, centre, _ = st.columns([0.025, 0.95, 0.025])
+_, centre, _ = st.columns([0.05, 0.9, 0.05])
 
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 filename = 'data.xlsx'
@@ -53,79 +54,80 @@ x_max = crimes_df_total['Count_Per_100'].max()
 x_time_min = crimes_df_over_time['Count_Per_100'].min()
 x_time_max = crimes_df_over_time['Count_Per_100'].max()
 
-l_margin, centre, r_margin = st.columns([0.1, 0.8, 0.1])
-
-with centre:
-
-    # Bar chart
-
-    fig = px.bar(
-        crimes_df_total,
-        x = 'Count_Per_100',
-        y = 'Crime',
-        color = f'{area_scale}_Name',
-        category_orders = {'Crime': crime_order},
-        barmode = 'group',
-        range_x = [x_min, x_max],
-        title = f'Total Number of Crimes per {area_scale} (2007-2024)',
-        width = 700,
-        height = 600,
-    )
-
-    st.plotly_chart(fig, use_container_width = True)
 
 
-    # Bar chart over time
+# Bar chart
 
-    fig = px.bar(
-        crimes_df_over_time,
-        x = 'Count_Per_100',
-        y = 'Crime',
-        color = f'{area_scale}_Name',
-        animation_frame = 'Year',
-        animation_group = 'Crime',
-        category_orders = {'Crime': crime_order},
-        barmode = 'group',
-        range_x = [x_time_min, x_time_max],
-        title = f'Total Number of Crimes per {area_scale} Over Time (2007-2024)',
-        width = 700,
-        height = 600,
-    )
+fig = px.bar(
+    crimes_df_total,
+    x = 'Count_Per_100',
+    y = 'Crime',
+    color = f'{area_scale}_Name',
+    category_orders = {'Crime': crime_order},
+    barmode = 'group',
+    range_x = [x_min, x_max],
+    width = 700,
+    height = 600,
+)
 
-    st.plotly_chart(fig, use_container_width = True)
-
-
-    # Scatter plot
-
-    fig = px.scatter(
-        crimes_df_total,
-        x = 'Count_Per_100',
-        y = 'Crime',
-        color = f'{area_scale}_Name',
-        category_orders = {'Crime': crime_order},
-        range_x = [x_min, x_max],
-        title = f'Total Number of Crimes per {area_scale} (2007-2024)',
-        width = 700,
-        height = 600,
-    )
-
-    st.plotly_chart(fig, use_container_width = True)
+st.subheader(f"Total Number of Crimes per {area_scale} (2007-2024)")
+st.plotly_chart(fig, use_container_width = True)
+st.divider()
 
 
-    # Scatter plot over time
+# Bar chart over time
 
-    fig = px.scatter(
-        crimes_df_over_time,
-        x = 'Count_Per_100',
-        y = 'Crime',
-        color = f'{area_scale}_Name',
-        animation_frame = 'Year',
-        animation_group = 'Crime',
-        category_orders = {'Crime': crime_order},
-        range_x = [x_time_min, x_time_max],
-        title = f'Total Number of Crimes per {area_scale} Over Time (2007-2024)',
-        width = 700,
-        height = 600,
-    )
+fig = px.bar(
+    crimes_df_over_time,
+    x = 'Count_Per_100',
+    y = 'Crime',
+    color = f'{area_scale}_Name',
+    animation_frame = 'Year',
+    animation_group = 'Crime',
+    category_orders = {'Crime': crime_order},
+    barmode = 'group',
+    range_x = [x_time_min, x_time_max],
+    width = 700,
+    height = 600,
+)
 
-    st.plotly_chart(fig, use_container_width = True)
+st.subheader(f"Total Number of Crimes per {area_scale} Over Time (2007-2024)")
+st.plotly_chart(fig, use_container_width = True)
+st.divider()
+
+
+# Scatter plot
+
+fig = px.scatter(
+    crimes_df_total,
+    x = 'Count_Per_100',
+    y = 'Crime',
+    color = f'{area_scale}_Name',
+    category_orders = {'Crime': crime_order},
+    range_x = [x_min, x_max],
+    width = 700,
+    height = 600,
+)
+
+st.subheader(f"Total Number of Crimes per {area_scale} (2007-2024)")
+st.plotly_chart(fig, use_container_width = True)
+st.divider()
+
+
+# Scatter plot over time
+
+fig = px.scatter(
+    crimes_df_over_time,
+    x = 'Count_Per_100',
+    y = 'Crime',
+    color = f'{area_scale}_Name',
+    animation_frame = 'Year',
+    animation_group = 'Crime',
+    category_orders = {'Crime': crime_order},
+    range_x = [x_time_min, x_time_max],
+    width = 700,
+    height = 600,
+)
+
+st.subheader(f"Total Number of Crimes per {area_scale} Over Time (2007-2024)")
+st.plotly_chart(fig, use_container_width = True)

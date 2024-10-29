@@ -15,7 +15,7 @@ def load_data(filename, file_path, sheet_name):
 
 # Title of the app
 st.title("Interactive Crime Map")
-st.header("Interactive Map of Crime Across WA Police Districts")
+st.divider()
 
 # Figure container margins
 _, centre, _ = st.columns([0.05, 0.9, 0.05])
@@ -116,7 +116,6 @@ fig.update_layout(
     margin={'t': 75},
 )
 
-
-with centre:
-    # Show the figure
-    st.plotly_chart(fig, use_container_width=True)
+# Show the figure
+st.header("Interactive Map of Crime Across WA Police Districts")
+st.plotly_chart(fig, use_container_width = True)
