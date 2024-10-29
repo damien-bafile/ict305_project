@@ -4,7 +4,7 @@ from http.client import responses
 import pandas as pd
 import requests
 import streamlit as st
-from helpers.DataLoading import downloadData
+from helpers.DataLoading import downloadData, loadData
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 file_path = "assets/data.xlsx"
 
@@ -27,7 +27,7 @@ about_page = st.Page(
 
 crime_over_population = st.Page(
     page="views/crime_over_population.py",
-    title="Test Homicide Bokem Graph",
+    title="Crime Over Population",
     icon="📈",
 )
 
@@ -72,6 +72,7 @@ st.sidebar.download_button(
 )
 # -- DOWNLOAD DATASET ---
 downloadData()
+loadData()
 
 # -- RUN NAVIGATION ---
 pg.run()
