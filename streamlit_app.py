@@ -36,10 +36,10 @@ about_page = create_page(
     default=True,
 )
 
-# TODO: Using more descriptive names for the pages
-homicide_by_population_page = create_page(
-    page_path="views/crime_over_population.py",
-    title="Homicide by Population",
+
+crime_over_population = st.Page(
+    page="views/crime_over_population.py",
+    title="Crime Over Population",
     icon="🗺️",
 )
 
