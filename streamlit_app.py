@@ -63,7 +63,7 @@ pg = st.navigation(
     {
         "Info": [about_page],
         "Visualizations": [
-            homicide_by_population_page,
+            crime_over_population,
             crime_trends_page,
             metro_vs_regional_crime_page,
             entertainment_zone_crime_page,
