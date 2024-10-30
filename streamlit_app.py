@@ -58,16 +58,22 @@ entertainment_zone_crime_page = create_page(
     title="Crime in Entertainment Zones",
 )
 
+about_us_page = create_page(
+    page_path="views/about_us.py",
+    title="About Us",
+    icon="👨‍💻",
+)
+
 # Load the pages into the navigation sidebar sorted by category
 pg = st.navigation(
     {
-        "Info": [about_page],
+        "Info": [about_page, about_us_page],
         "Visualizations": [
             crime_over_population,
             crime_trends_page,
             metro_vs_regional_crime_page,
             entertainment_zone_crime_page,
-        ],
+        ]
     }
 )
 
