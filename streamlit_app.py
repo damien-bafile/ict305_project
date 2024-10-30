@@ -47,26 +47,32 @@ about_page = create_page(
     default=True,
 )
 
-
-crime_over_population = st.Page(
-    page="views/crime_over_population.py",
-    title="Crime Over Population",
+# TODO: Using more descriptive names for the pages
+crime_by_district = create_page(
+    page_path="views/crime_by_district.py",
+    title="Crime by District",
     icon="🗺️",
+
 )
 
-crime_trends_page = create_page(
+crime_map = create_page(
+    page_path="views/crime_map.py",
+    title="Crime Map",
+)
+
+crime_over_time = create_page(
     page_path="views/crime_over_time.py",
-    title="Crime Trends Over Time",
+    title="Crime Over Time",
 )
 
-metro_vs_regional_crime_page = create_page(
+metro_vs_regional = create_page(
     page_path="views/metro_vs_regional.py",
     title="Metro vs Regional Crime",
 )
 
-entertainment_zone_crime_page = create_page(
-    page_path="views/entertainment_crime.py",
-    title="Crime in Entertainment Zones",
+crime_total_wa = create_page(
+    page_path="views/crime_total_wa.py",
+    title="Total Crime in WA",
 )
 
 about_us_page = create_page(
@@ -80,17 +86,18 @@ pg = st.navigation(
     {
         "Info": [about_page, about_us_page],
         "Visualizations": [
-            crime_over_population,
-            crime_trends_page,
-            metro_vs_regional_crime_page,
-            entertainment_zone_crime_page,
-        ]
+            crime_by_district,
+            crime_map,
+            crime_over_time,
+            metro_vs_regional,
+            crime_total_wa,
+        ],
     }
 )
 
 # Adds a footer to the sidebar
 st.sidebar.text("Created by Machine Masters 🤖")
-st.logo("assets/Police-logo-240-2021.png")
+st.logo("assets/images/Police-logo-240-2021.png")
 st.sidebar.download_button(
     label="Download Dataset",
     data=zip_file_object,
@@ -109,4 +116,3 @@ downloadData(
 )
 
 # --- RUN NAVIGATION ---
-pg.run()
