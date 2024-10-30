@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import json
 import pandas as pd
+from catppuccin import PALETTE
 
 # Load the GeoJSON file for suburbs
 geojson_file_path = "assets/WAPoliceForceDistrictboundaries(WAPOL-002).geojson"
@@ -16,13 +17,20 @@ crime_data = pd.read_csv("assets/CSVs/data_All_Crimes_Totals_Sorted.csv")
 # Extract unique crime types
 crime_types = crime_data["Crime"].unique()
 
-
 # Create a base figure (for the first crime type by default)
 initial_crime_type = crime_types[0]
 filtered_data = crime_data[crime_data["Crime"] == initial_crime_type].copy()
 
 # Ensure 'District' column matches the 'DISTRICT' property in GeoJSON
 filtered_data.loc[:, 'District'] = filtered_data['District'].str.upper()
+
+catpuccin_color_scale = [
+    [0, PALETTE.latte.colors.blue.hex],
+    [0.25, PALETTE.latte.colors.green.hex],
+    [0.5, PALETTE.latte.colors.yellow.hex],
+    [0.75, PALETTE.latte.colors.maroon.hex],
+    [1, PALETTE.latte.colors.red.hex],
+]
 
 # Create the choropleth map
 fig = px.choropleth_mapbox(
@@ -31,7 +39,7 @@ fig = px.choropleth_mapbox(
     locations="District",
     featureidkey="properties.DISTRICT",
     color="Count_Per_100",
-    color_continuous_scale="Viridis",
+    color_continuous_scale=catpuccin_color_scale,
     mapbox_style="carto-positron",
     zoom=8,
     center={"lat": -31.9505, "lon": 115.8605},  # Perth's coordinates

@@ -12,7 +12,7 @@ project_members = {
 }
 
 # Define the assets directory
-assets_dir = "./assets"
+assets_dir = "./assets/images"
 
 # Create a Streamlit app to display the details
 st.title("Project Team Details")
