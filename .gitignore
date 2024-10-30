@@ -111,3 +111,4 @@ justfile
 forms/__pycache__
 assets/*
 forms/__pycache__
+.idea/Dataset.iml
