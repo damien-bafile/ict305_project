@@ -116,3 +116,4 @@ downloadData(
 )
 
 # --- RUN NAVIGATION ---
+pg.run()
