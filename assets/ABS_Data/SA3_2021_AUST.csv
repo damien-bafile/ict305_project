@@ -1,0 +1,360 @@
+SA3_CODE_2021,SA3_NAME_2021,STATE_CODE_2021
+10102,Queanbeyan,1.0
+10103,Snowy Mountains,1.0
+10104,South Coast,1.0
+10105,Goulburn - Mulwaree,1.0
+10106,Young - Yass,1.0
+10201,Gosford,1.0
+10202,Wyong,1.0
+10301,Bathurst,1.0
+10302,Lachlan Valley,1.0
+10303,Lithgow - Mudgee,1.0
+10304,Orange,1.0
+10401,Clarence Valley,1.0
+10402,Coffs Harbour,1.0
+10501,Bourke - Cobar - Coonamble,1.0
+10502,Broken Hill and Far West,1.0
+10503,Dubbo,1.0
+10601,Lower Hunter,1.0
+10602,Maitland,1.0
+10603,Port Stephens,1.0
+10604,Upper Hunter,1.0
+10701,Dapto - Port Kembla,1.0
+10702,Illawarra Catchment Reserve,1.0
+10703,Kiama - Shellharbour,1.0
+10704,Wollongong,1.0
+10801,Great Lakes,1.0
+10802,Kempsey - Nambucca,1.0
+10803,Lord Howe Island,1.0
+10804,Port Macquarie,1.0
+10805,Taree - Gloucester,1.0
+10901,Albury,1.0
+10902,Lower Murray,1.0
+10903,Upper Murray exc. Albury,1.0
+11001,Armidale,1.0
+11002,Inverell - Tenterfield,1.0
+11003,Moree - Narrabri,1.0
+11004,Tamworth - Gunnedah,1.0
+11101,Lake Macquarie - East,1.0
+11102,Lake Macquarie - West,1.0
+11103,Newcastle,1.0
+11201,Richmond Valley - Coastal,1.0
+11202,Richmond Valley - Hinterland,1.0
+11203,Tweed Valley,1.0
+11301,Griffith - Murrumbidgee (West),1.0
+11302,Tumut - Tumbarumba,1.0
+11303,Wagga Wagga,1.0
+11401,Shoalhaven,1.0
+11402,Southern Highlands,1.0
+11501,Baulkham Hills,1.0
+11502,Dural - Wisemans Ferry,1.0
+11503,Hawkesbury,1.0
+11504,Rouse Hill - McGraths Hill,1.0
+11601,Blacktown,1.0
+11602,Blacktown - North,1.0
+11603,Mount Druitt,1.0
+11701,Botany,1.0
+11702,Marrickville - Sydenham - Petersham,1.0
+11703,Sydney Inner City,1.0
+11801,Eastern Suburbs - North,1.0
+11802,Eastern Suburbs - South,1.0
+11901,Bankstown,1.0
+11902,Canterbury,1.0
+11903,Hurstville,1.0
+11904,Kogarah - Rockdale,1.0
+12001,Canada Bay,1.0
+12002,Leichhardt,1.0
+12003,Strathfield - Burwood - Ashfield,1.0
+12101,Chatswood - Lane Cove,1.0
+12102,Hornsby,1.0
+12103,Ku-ring-gai,1.0
+12104,North Sydney - Mosman,1.0
+12201,Manly,1.0
+12202,Pittwater,1.0
+12203,Warringah,1.0
+12301,Camden,1.0
+12302,Campbelltown (NSW),1.0
+12303,Wollondilly,1.0
+12401,Blue Mountains,1.0
+12402,Blue Mountains - South,1.0
+12403,Penrith,1.0
+12404,Richmond - Windsor,1.0
+12405,St Marys,1.0
+12501,Auburn,1.0
+12502,Carlingford,1.0
+12503,Merrylands - Guildford,1.0
+12504,Parramatta,1.0
+12601,Pennant Hills - Epping,1.0
+12602,Ryde - Hunters Hill,1.0
+12701,Bringelly - Green Valley,1.0
+12702,Fairfield,1.0
+12703,Liverpool,1.0
+12801,Cronulla - Miranda - Caringbah,1.0
+12802,Sutherland - Menai - Heathcote,1.0
+19797,Migratory - Offshore - Shipping (NSW),1.0
+19999,No usual address (NSW),1.0
+20101,Ballarat,2.0
+20102,Creswick - Daylesford - Ballan,2.0
+20103,Maryborough - Pyrenees,2.0
+20201,Bendigo,2.0
+20202,Heathcote - Castlemaine - Kyneton,2.0
+20203,Loddon - Elmore,2.0
+20301,Barwon - West,2.0
+20302,Geelong,2.0
+20303,Surf Coast - Bellarine Peninsula,2.0
+20401,Upper Goulburn Valley,2.0
+20402,Wangaratta - Benalla,2.0
+20403,Wodonga - Alpine,2.0
+20501,Baw Baw,2.0
+20502,Gippsland - East,2.0
+20503,Gippsland - South West,2.0
+20504,Latrobe Valley,2.0
+20505,Wellington,2.0
+20601,Brunswick - Coburg,2.0
+20602,Darebin - South,2.0
+20603,Essendon,2.0
+20604,Melbourne City,2.0
+20605,Port Phillip,2.0
+20606,Stonnington - West,2.0
+20607,Yarra,2.0
+20701,Boroondara,2.0
+20702,Manningham - West,2.0
+20703,Whitehorse - West,2.0
+20801,Bayside,2.0
+20802,Glen Eira,2.0
+20803,Kingston,2.0
+20804,Stonnington - East,2.0
+20901,Banyule,2.0
+20902,Darebin - North,2.0
+20903,Nillumbik - Kinglake,2.0
+20904,Whittlesea - Wallan,2.0
+21001,Keilor,2.0
+21002,Macedon Ranges,2.0
+21003,Moreland - North,2.0
+21004,Sunbury,2.0
+21005,Tullamarine - Broadmeadows,2.0
+21101,Knox,2.0
+21102,Manningham - East,2.0
+21103,Maroondah,2.0
+21104,Whitehorse - East,2.0
+21105,Yarra Ranges,2.0
+21201,Cardinia,2.0
+21202,Casey - North,2.0
+21203,Casey - South,2.0
+21204,Dandenong,2.0
+21205,Monash,2.0
+21301,Brimbank,2.0
+21302,Hobsons Bay,2.0
+21303,Maribyrnong,2.0
+21304,Melton - Bacchus Marsh,2.0
+21305,Wyndham,2.0
+21401,Frankston,2.0
+21402,Mornington Peninsula,2.0
+21501,Grampians,2.0
+21502,Mildura,2.0
+21503,Murray River - Swan Hill,2.0
+21601,Campaspe,2.0
+21602,Moira,2.0
+21603,Shepparton,2.0
+21701,Glenelg - Southern Grampians,2.0
+21703,Colac - Corangamite,2.0
+21704,Warrnambool,2.0
+29797,Migratory - Offshore - Shipping (Vic.),2.0
+29999,No usual address (Vic.),2.0
+30101,Capalaba,3.0
+30102,Cleveland - Stradbroke,3.0
+30103,Wynnum - Manly,3.0
+30201,Bald Hills - Everton Park,3.0
+30202,Chermside,3.0
+30203,Nundah,3.0
+30204,Sandgate,3.0
+30301,Carindale,3.0
+30302,Holland Park - Yeronga,3.0
+30303,Mt Gravatt,3.0
+30304,Nathan,3.0
+30305,Rocklea - Acacia Ridge,3.0
+30306,Sunnybank,3.0
+30401,Centenary,3.0
+30402,Kenmore - Brookfield - Moggill,3.0
+30403,Sherwood - Indooroopilly,3.0
+30404,The Gap - Enoggera,3.0
+30501,Brisbane Inner,3.0
+30502,Brisbane Inner - East,3.0
+30503,Brisbane Inner - North,3.0
+30504,Brisbane Inner - West,3.0
+30601,Cairns - North,3.0
+30602,Cairns - South,3.0
+30603,Innisfail - Cassowary Coast,3.0
+30604,Port Douglas - Daintree,3.0
+30605,Tablelands (East) - Kuranda,3.0
+30701,Darling Downs (West) - Maranoa,3.0
+30702,Darling Downs - East,3.0
+30703,Granite Belt,3.0
+30801,Central Highlands (Qld),3.0
+30803,Rockhampton,3.0
+30804,Biloela,3.0
+30805,Gladstone,3.0
+30901,Broadbeach - Burleigh,3.0
+30902,Coolangatta,3.0
+30903,Gold Coast - North,3.0
+30904,Gold Coast Hinterland,3.0
+30905,Mudgeeraba - Tallebudgera,3.0
+30906,Nerang,3.0
+30907,Ormeau - Oxenford,3.0
+30908,Robina,3.0
+30909,Southport,3.0
+30910,Surfers Paradise,3.0
+31001,Forest Lake - Oxley,3.0
+31002,Ipswich Hinterland,3.0
+31003,Ipswich Inner,3.0
+31004,Springfield - Redbank,3.0
+31101,Beaudesert,3.0
+31102,Beenleigh,3.0
+31103,Browns Plains,3.0
+31104,Jimboomba,3.0
+31105,Loganlea - Carbrook,3.0
+31106,Springwood - Kingston,3.0
+31201,Bowen Basin - North,3.0
+31202,Mackay,3.0
+31203,Whitsunday,3.0
+31301,Bribie - Beachmere,3.0
+31302,Caboolture,3.0
+31303,Caboolture Hinterland,3.0
+31304,Narangba - Burpengary,3.0
+31305,Redcliffe,3.0
+31401,The Hills District,3.0
+31402,North Lakes,3.0
+31403,Strathpine,3.0
+31501,Far North,3.0
+31502,Outback - North,3.0
+31503,Outback - South,3.0
+31601,Buderim,3.0
+31602,Caloundra,3.0
+31603,Maroochy,3.0
+31605,Noosa,3.0
+31606,Sunshine Coast Hinterland,3.0
+31607,Nambour,3.0
+31608,Noosa Hinterland,3.0
+31701,Toowoomba,3.0
+31801,Charters Towers - Ayr - Ingham,3.0
+31802,Townsville,3.0
+31901,Bundaberg,3.0
+31902,Burnett,3.0
+31903,Gympie - Cooloola,3.0
+31904,Hervey Bay,3.0
+31905,Maryborough,3.0
+39797,Migratory - Offshore - Shipping (Qld),3.0
+39999,No usual address (Qld),3.0
+40101,Adelaide City,4.0
+40102,Adelaide Hills,4.0
+40103,Burnside,4.0
+40104,Campbelltown (SA),4.0
+40105,Norwood - Payneham - St Peters,4.0
+40106,Prospect - Walkerville,4.0
+40107,Unley,4.0
+40201,Gawler - Two Wells,4.0
+40202,Playford,4.0
+40203,Port Adelaide - East,4.0
+40204,Salisbury,4.0
+40205,Tea Tree Gully,4.0
+40301,Holdfast Bay,4.0
+40302,Marion,4.0
+40303,Mitcham,4.0
+40304,Onkaparinga,4.0
+40401,Charles Sturt,4.0
+40402,Port Adelaide - West,4.0
+40403,West Torrens,4.0
+40501,Barossa,4.0
+40502,Lower North,4.0
+40503,Mid North,4.0
+40504,Yorke Peninsula,4.0
+40601,Eyre Peninsula and South West,4.0
+40602,Outback - North and East,4.0
+40701,Fleurieu - Kangaroo Island,4.0
+40702,Limestone Coast,4.0
+40703,Murray and Mallee,4.0
+49797,Migratory - Offshore - Shipping (SA),4.0
+49999,No usual address (SA),4.0
+50101,Augusta - Margaret River - Busselton,5.0
+50102,Bunbury,5.0
+50103,Manjimup,5.0
+50201,Mandurah,5.0
+50301,Cottesloe - Claremont,5.0
+50302,Perth City,5.0
+50401,Bayswater - Bassendean,5.0
+50402,Mundaring,5.0
+50403,Swan,5.0
+50501,Joondalup,5.0
+50502,Stirling,5.0
+50503,Wanneroo,5.0
+50601,Armadale,5.0
+50602,Belmont - Victoria Park,5.0
+50603,Canning,5.0
+50604,Gosnells,5.0
+50605,Kalamunda,5.0
+50606,Serpentine - Jarrahdale,5.0
+50607,South Perth,5.0
+50701,Cockburn,5.0
+50702,Fremantle,5.0
+50703,Kwinana,5.0
+50704,Melville,5.0
+50705,Rockingham,5.0
+50901,Albany,5.0
+50902,Wheat Belt - North,5.0
+50903,Wheat Belt - South,5.0
+51001,Kimberley,5.0
+51002,East Pilbara,5.0
+51003,West Pilbara,5.0
+51101,Esperance,5.0
+51102,Gascoyne,5.0
+51103,Goldfields,5.0
+51104,Mid West,5.0
+59797,Migratory - Offshore - Shipping (WA),5.0
+59999,No usual address (WA),5.0
+60101,Brighton,6.0
+60102,Hobart - North East,6.0
+60103,Hobart - North West,6.0
+60104,Hobart - South and West,6.0
+60105,Hobart Inner,6.0
+60106,Sorell - Dodges Ferry,6.0
+60201,Launceston,6.0
+60202,Meander Valley - West Tamar,6.0
+60203,North East,6.0
+60301,Central Highlands (Tas.),6.0
+60302,Huon - Bruny Island,6.0
+60303,South East Coast,6.0
+60401,Burnie - Ulverstone,6.0
+60402,Devonport,6.0
+60403,West Coast,6.0
+69797,Migratory - Offshore - Shipping (Tas.),6.0
+69999,No usual address (Tas.),6.0
+70101,Darwin City,7.0
+70102,Darwin Suburbs,7.0
+70103,Litchfield,7.0
+70104,Palmerston,7.0
+70201,Alice Springs,7.0
+70202,Barkly,7.0
+70203,Daly - Tiwi - West Arnhem,7.0
+70204,East Arnhem,7.0
+70205,Katherine,7.0
+79797,Migratory - Offshore - Shipping (NT),7.0
+79999,No usual address (NT),7.0
+80101,Belconnen,8.0
+80103,Canberra East,8.0
+80104,Gungahlin,8.0
+80105,North Canberra,8.0
+80106,South Canberra,8.0
+80107,Tuggeranong,8.0
+80108,Weston Creek,8.0
+80109,Woden Valley,8.0
+80110,Molonglo,8.0
+80111,Uriarra - Namadgi,8.0
+89797,Migratory - Offshore - Shipping (ACT),8.0
+89999,No usual address (ACT),8.0
+90101,Christmas Island,9.0
+90102,Cocos (Keeling) Islands,9.0
+90103,Jervis Bay,9.0
+90104,Norfolk Island,9.0
+99797,Migratory - Offshore - Shipping (OT),9.0
+99999,No usual address (OT),9.0
+ZZZZZ,Outside Australia,
