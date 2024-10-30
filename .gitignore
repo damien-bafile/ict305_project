@@ -111,3 +111,10 @@ justfile
 forms/__pycache__
 assets/*
 forms/__pycache__
+.idea/Dataset.iml
+.idea
+/assets/ABS_Data/
+/assets/CSVs/
+/assets/data.csv
+/assets/data.xlsx
+/assets/data.zip
