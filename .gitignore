@@ -109,3 +109,5 @@ ipython_config.py
 justfile
 **/__pycache__/
 .idea
+/assets/**
+/assets/**/*
