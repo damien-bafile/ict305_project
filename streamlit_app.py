@@ -1,9 +1,20 @@
+import os
+from http.client import responses
+
+import pandas as pd
 import streamlit as st
 from helpers.DataLoading import downloadData, loadData
 from helpers.ZipDataset import zip_dataset
 from helpers.CreatePage import create_page
 
 # this is the main entry point for the streamlit app
+from helpers.DataLoading import downloadData
+
+
+# Load the data from the Excel file (this assumes you have the file in the same directory)
+filename = 'data.xlsx'
+file_path = 'assets'
+sheet_name = 'Data'
 
 # --- DATA SETUP ---
 folder_path = "./assets/"
@@ -16,11 +27,11 @@ file_names = [
     "2021Census_G01_WA_SA3.csv",
     "2021Census_G01_WA_SAL.csv",
 ]
+# Geographies and year for ABS data to download
+abs_file_path = 'ABS_Data'
+geographies = ['LGA', 'SA3', 'SAL']
+year = 2021
 
-# Download the dataset
-downloadData()
-# Load the dataset
-loadData()
 # Create a zip file object containing the dataset ready for download
 zip_file_object = zip_dataset(folder_path, file_names)
 
@@ -82,5 +93,14 @@ st.sidebar.download_button(
     help="Download the dataset for you own use",
 )
 
-# Run the selected page
+# --- DOWNLOAD DATASET ---
+downloadData(
+    filename,
+    file_path=file_path,
+    abs_file_path=abs_file_path,
+    geographies=geographies,
+    year=year,
+)
+
+# --- RUN NAVIGATION ---
 pg.run()

@@ -2,7 +2,7 @@
 
 '''
 ICT305: Data Visualisation and Simulation
-Group Assignment
+Group Project
 Group Name: Machine Masters
 Eren Stannard - 34189185
 '''
@@ -14,18 +14,26 @@ import os
 import numpy as np
 import pandas as pd
 import requests
-from zipfile import ZipFile
 from io import BytesIO
+from zipfile import ZipFile
+from time import time
 
 from helpers.FileIO import *
 
 
 # Function for downloading ABS data
 
-def downloadABSData(geographies, file_path = '', year = 2021, download_zips = False, check_first = True):
+def downloadABSData(geographies, year = 2021, file_path = 'assets', abs_data_file_path = 'ABS_Data',
+                    download_zips = False):
     
+    t0 = time()
+    
+    file_path = filePath(abs_data_file_path, file_path = file_path)
     if not os.path.isdir(file_path):
         os.makedirs(file_path)
+    
+    downloaded = False
+
     url = "https://www.abs.gov.au"
     asgs_url = f"{url}/statistics/standards/australian-statistical-geography-standard-asgs-edition-3"
 
@@ -42,46 +50,64 @@ def downloadABSData(geographies, file_path = '', year = 2021, download_zips = Fa
 
     # Download Allocation Files
     for filename in af_filenames:
-        if not os.path.isfile(os.path.join(file_path, filename)):
+        full_filename = filePath(filename, file_path = file_path)
+        if not os.path.isfile(full_filename):
             print(f"Downloading {filename}...")
             response = session.get(f'{af_url}/{filename}')
-            with open(os.path.join(file_path, filename), 'wb') as f:
+            with open(full_filename, 'wb') as f:
                 f.write(response.content)
+                downloaded = True
         else:
             print(f"{filename} already downloaded.")
 
     # Download Census DataPacks
     for (filename, member_name) in zip(dp_zip_filenames, dp_filenames):
-
-        zip_exists = os.path.isfile(os.path.join(file_path, filename))
-        member_exists = os.path.isfile(os.path.join(file_path, member_name))
+        
+        full_filename = filePath(filename, file_path = file_path)
+        member_filename = filePath(member_name, file_path = file_path)
+        zip_exists = os.path.isfile(full_filename)
+        member_exists = os.path.isfile(member_filename)
 
         if not ((zip_exists or not download_zips) and member_exists):
             print(f"Downloading {member_name} from {filename}...")
             response = session.get(f'{dp_url}/{filename}')
 
-        if download_zips and not zip_exists:
-            print(f"Downloading {filename}...")
-            with open(os.path.join(file_path, filename), 'wb') as f:
-                f.write(response.content)
-        else:
-            print(f"{filename} already downloaded.")
-            download_zips = False
+        if download_zips:
+            if not zip_exists:
+                print(f"Downloading {filename}...")
+                with open(full_filename, 'wb') as f:
+                    f.write(response.content)
+                    downloaded = True
+            else:
+                print(f"{filename} already downloaded.")
+                download_zips = False
         
         if download_zips or not member_exists:
             print(f"Downloading {member_name}...")
             with ZipFile(BytesIO(response.content)) as z:
                 member_path = [x for x in z.namelist() if x.endswith(member_name)][0]
-                with open(os.path.join(file_path, member_name), 'wb') as f:
+                member_filename = filePath(member_name, file_path = file_path)
+                with open(member_filename, 'wb') as f:
                     f.write(z.read(member_path))
+                    downloaded = True
         else:
             print(f"{member_name} already downloaded.")
+
+    t1 = time()
+    print("downloadABSData(): %.3fs" % (t1 - t0))
+    
+    return downloaded
 
 
 # Function for loading ABS data
 
-def loadABSData(file_path = '', geographies = [], year = 2021, get_csv = True, download = False):
+def loadABSData(geographies, year = 2021, file_path = 'assets', abs_data_file_path = 'ABS_Data',
+                get_csv = True):
 
+    t0 = time()
+    
+    file_path = filePath(abs_data_file_path, file_path = file_path)
+    
     dfs = dict.fromkeys(geographies)
 
     # Allocation Files (for retrieving codes)
@@ -91,12 +117,10 @@ def loadABSData(file_path = '', geographies = [], year = 2021, get_csv = True, d
     dp_filenames = [f'{year}Census_G01_WA_{g}.csv' for g in geographies]
 
     for filename in af_filenames + dp_filenames:
-        if not os.path.isfile(os.path.join(file_path, filename)):
-            download = True
+        filename, _ = filePath(filename, file_path = file_path, split_ext = True)
+        if not os.path.isfile(f'{filename}.csv'):
+            downloadABSData(geographies, file_path = file_path, year = year)
             break
-
-    if download:
-        downloadABSData(geographies, file_path = file_path, year = year)
 
     for (g, af_filename, dp_filename) in zip(geographies, af_filenames, dp_filenames):
 
@@ -133,6 +157,9 @@ def loadABSData(file_path = '', geographies = [], year = 2021, get_csv = True, d
             on = 'CODE',
             how = 'left',
         ).dropna(how = 'any').drop_duplicates()
+
+    t1 = time()
+    print("loadABSData(): %.3fs" % (t1 - t0))
         
     return dfs
 
@@ -140,6 +167,8 @@ def loadABSData(file_path = '', geographies = [], year = 2021, get_csv = True, d
 # Function for getting populations
 
 def getPopulations(df, geography_df, geography):
+
+    t0 = time()
 
     for i in df[df['Type'] == geography].index:
 
@@ -149,34 +178,37 @@ def getPopulations(df, geography_df, geography):
         # Get population
         df.loc[i, 'Population'] = geography_df[geography_df['CODE'] == df.loc[i, 'Code']]['Tot_P_P'].values[0]
 
+    t1 = time()
+    print("getPopulations(): %.3fs" % (t1 - t0))
+
     return df
 
 
 # Function for getting population data using ABS data
 
-def getPopulationData(filename, file_path = '', geographies = [], year = 2021, get_csv = True, download = False):
+def getPopulationData(filename, geographies = ['LGA', 'SA3', 'SAL'], year = 2021, file_path = 'assets',
+                      abs_data_file_path = 'ABS_Data', get_csv = True):
 
+    t0 = time()
+    
     # Read data from files
 
     # Folder for data related to population
-    abs_data_file_path = os.path.join(file_path, 'ABS_Data')
+    abs_data_file_path = filePath(abs_data_file_path, file_path = file_path)
     if not os.path.isdir(abs_data_file_path):
         os.makedirs(abs_data_file_path)
         download = True
 
     ## Relevant areas
-    df = readData(filename, file_path = file_path, get_csv = get_csv)
-    
-    if download:
-        downloadABSData(geographies, file_path = file_path, year = year)
+    filename = filePath(filename, file_path = file_path)
+    df = readData(filename, get_csv = get_csv)
 
     # ABS data
     dfs = loadABSData(
-        file_path = abs_data_file_path,
-        geographies = geographies,
+        geographies,
         year = year,
+        file_path = abs_data_file_path,
         get_csv = get_csv,
-        download = download,
     )
 
 
@@ -216,5 +248,8 @@ def getPopulationData(filename, file_path = '', geographies = [], year = 2021, g
     # Write population data to Excel file
     writeToFile(df, 'RegionMapping.csv', file_path = file_path)
     #writeToFile(pop_df, 'RegionPopulations.csv', file_path = abs_data_file_path, index = True)
+
+    t1 = time()
+    print("getPopulationData(): %.3fs" % (t1 - t0))
 
     return(pop_df)
