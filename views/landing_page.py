@@ -20,7 +20,6 @@ with centre:
         st.image("./assets/images/Police-logo-240-2021.png", width=230)
     with col2:
         st.title("ICT305 - **Machine Masters** 🤖", anchor=False)
-        st.write("Welcome to the Police State")
         if st.button("📩"):
             show_contact_form()
 
