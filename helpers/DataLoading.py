@@ -11,7 +11,7 @@ Eren Stannard - 34189185
 import os
 from time import time
 
-from helpers.CrimeData import downloadDataset, getCrimeData
+from helpers.CrimeData import downloadDataset, downloadGeoJSON, getCrimeData
 from helpers.PopulationData import downloadABSData
 from helpers.FileIO import filePath
 
@@ -25,6 +25,10 @@ def downloadData(filename = 'data.xlsx', file_path = 'assets', abs_file_path = '
     
     filename = filePath(filename, file_path = file_path)
     abs_file_path = filePath(abs_file_path, file_path = file_path)
+    district_file_path = filePath('WAPOL_Districts', file_path=file_path)
+    
+    if not os.path.isdir(district_file_path):
+        downloadGeoJSON(district_file_path)
     
     dataset_downloaded = downloadDataset(filename, check_first = check_first)
     abs_data_downloaded = downloadABSData(geographies, file_path = abs_file_path, year = year)

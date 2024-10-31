@@ -16,7 +16,7 @@ with centre:
     # --- HERO SECTION ---
     col1, col2 = st.columns(2, gap="small", vertical_alignment="center")
     with col1:
-        st.image("./assets/Police-logo-240-2021.png", width=230)
+        st.image("./assets/images/Police-logo-240-2021.png", width=230)
     with col2:
         st.title("ICT305 - **Machine Masters** 🤖", anchor=False)
         st.write("Welcome to the Police State")

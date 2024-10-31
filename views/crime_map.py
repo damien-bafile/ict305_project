@@ -1,82 +1,75 @@
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
 import json
+import os
 import pandas as pd
+from catppuccin import PALETTE
 
-from helpers.DataLoading import loadData
-from helpers.FileIO import readData, filePath
+from helpers.CrimeData import downloadGeoJSON
+from helpers.FileIO import *
 
-
-@st.cache_data
-def load_data(filename, file_path='assets', sheet_name=None):
-    if filename.endswith('.xlsx'):
-        data = loadData(filename, file_path=file_path, sheet_name=sheet_name)
-    else:
-        data = readData(filename, file_path=file_path)
-    return data
-
-
-# Title of the page
-st.title("Interactive Crime Map")
-
-# Figure container margins
-_, centre, _ = st.columns([0.05, 0.9, 0.05])
-
-
-# Load the data from the Excel file (this assumes you have the file in the same directory)
-filename = 'data.xlsx'
+# Load the GeoJSON file for suburbs
 file_path = 'assets'
-sheet_name = 'Data'
-#crimes_df = load_data(filename, file_path, sheet_name)
+district_file_path = filePath('WAPOL_Districts', file_path=file_path)
+geojson_file_path = filePath('Police_Districts.geojson', file_path=district_file_path)
 
-# Load the GeoJSON file for districts
-geojson_filename = 'WA Police Force District Boundaries (WAPOL-002).geojson'
-geojson_data_suburbs = load_data(geojson_filename, file_path=file_path)
+if not os.path.isfile(geojson_file_path):
+    downloadGeoJSON(district_file_path)
+
+geojson_data_suburbs = readData(geojson_file_path)
 
 # Load the crime data from the CSV
-totals_sorted_filename = 'data_All_Crimes_Totals_Sorted.csv'
 csv_file_path = filePath('CSVs', file_path=file_path)
-crime_data = load_data(totals_sorted_filename, file_path=csv_file_path)
+crime_file_path = filePath('data_All_Crimes_Totals_Sorted.csv', file_path=csv_file_path)
+crime_data = readData(crime_file_path)
 
 # Extract unique crime types
-crime_types = crime_data['Crime'].unique()
+crime_types = crime_data["Crime"].unique()
 
 # Create a base figure (for the first crime type by default)
 initial_crime_type = crime_types[0]
-filtered_data = crime_data[crime_data['Crime'] == initial_crime_type].copy()
+filtered_data = crime_data[crime_data["Crime"] == initial_crime_type].copy()
 
 # Ensure 'District' column matches the 'DISTRICT' property in GeoJSON
 filtered_data.loc[:, 'District'] = filtered_data['District'].str.upper()
 
+catppuccin_color_scale = [
+    [0, PALETTE.latte.colors.blue.hex],
+    [0.25, PALETTE.latte.colors.green.hex],
+    [0.5, PALETTE.latte.colors.yellow.hex],
+    [0.75, PALETTE.latte.colors.maroon.hex],
+    [1, PALETTE.latte.colors.red.hex],
+]
 
 # Create the choropleth map
 fig = px.choropleth_mapbox(
     filtered_data,
     geojson=geojson_data_suburbs,
-    locations='District',
-    featureidkey='properties.DISTRICT',
-    color='Count_Per_100',
-    color_continuous_scale='Viridis',
-    mapbox_style='carto-positron',
+    locations="District",
+    featureidkey="properties.DISTRICT",
+    color="Count_Per_100",
+    color_continuous_scale=catppuccin_color_scale,
+    mapbox_style="carto-positron",
     zoom=8,
-    center={'lat': -31.9505, 'lon': 115.8605},  # Perth's coordinates
+    center={"lat": -31.9505, "lon": 115.8605},  # Perth's coordinates
     opacity=0.6,
+    height=800,
     hover_data={
-        'District': True,
-        'Region': True,
-        'Count': True,
-        'Population': True,
-        'Count_Per_100': True
-    },
-    height=750,
+        "District": True,
+        "Region": True,
+        "Count": True,
+        "Population": True,
+        "Count_Per_100": True
+    }
 )
 
 # Create the dropdown menu for crime types
 dropdown_buttons = [
     {
-        'args': [{'z': [crime_data[crime_data['Crime'] == crime_type]['Count_Per_100']]}],
-        'label': crime_type,
-        'method': 'update',
+        "args": [{"z": [crime_data[crime_data["Crime"] == crime_type]["Count_Per_100"]]}],
+        "label": crime_type,
+        "method": "update",
     }
     for crime_type in crime_types
 ]
@@ -102,7 +95,6 @@ fig.update_layout(
             'x': 0,
             'xanchor': 'left',
             'xref': 'paper',
-            #'xshift': -270,
             'y': 1,
             'yanchor': 'bottom',
             'yref': 'paper',

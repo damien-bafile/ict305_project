@@ -23,9 +23,6 @@ st.title("Crime per District")
 # Figure container margins
 _, centre, _ = st.columns([0.05, 0.9, 0.05])
 
-# Colour palette
-colours = [colour.hex for colour in PALETTE.latte.colors]
-
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 filename = 'data_Processed.csv'
 file_path = 'assets'
@@ -41,12 +38,26 @@ period_range = [crimes_df['Period'].min(), crimes_df['Period'].max()]
 st.caption(f"From {period_range[0]} to {period_range[1]}.")
 
 crimes_df_total = getCrimeCounts(crimes_df, area_scale=area_scale, ascending=True)
+crimes_df_district_total = getCrimeCounts(
+    crimes_df.drop(columns='Crime'),
+    area_scale=area_scale,
+    group_by=['Population'],
+    sort_by=['Count_Per_100', 'Count'],
+    ascending=True,
+)
 crimes_df_over_time = getCrimeCounts(crimes_df, group_by=['Year'], sort=False, area_scale=area_scale)
 
-areas = crimes_df_total[area_scale].unique()
+areas = crimes_df_district_total[area_scale].unique()[::-1]
 crimes = crimes_df_total['Crime'].unique()[::-1]
-colour_map = dict(zip(crimes, colours[:len(crimes)]))
-area_colour_map = dict(zip(areas, colours[:len(areas)]))
+
+# Colour palette
+colours = [colour.hex for colour in PALETTE.latte.colors]
+crime_colours = colours[:len(crimes)]
+#crime_colours = sorted(crime_colours)
+area_colours = colours[:len(areas)]
+#area_colours = sorted(area_colours)
+crime_colour_map = dict(zip(crimes, crime_colours))
+area_colour_map = dict(zip(areas, area_colours))
 
 x_min = crimes_df_total['Count_Per_100'].min()
 x_max = crimes_df_total['Count_Per_100'].max()
@@ -54,8 +65,47 @@ x_time_min = crimes_df_over_time['Count_Per_100'].min()
 x_time_max = crimes_df_over_time['Count_Per_100'].max()
 
 
+# Crime count over opulation
+st.header("Crime Count Over District Population")
+st.write(
+    "The scatter plot illustrates the relationship between the amount of crime in a district "
+    "and the district's population."
+)
+
+# Figure container margins
+left, right = st.columns([0.5, 0.5])
+
+# Scatter plot
+fig = px.scatter(
+    crimes_df_district_total,
+    x='Count',
+    y='Population',
+    color=area_scale,
+    size='Count',
+    color_discrete_map=area_colour_map,
+    height=500,
+)
+left.subheader(f"Raw Crime Count")
+left.plotly_chart(fig, use_container_width=True)
+
+# Scatter plot
+fig = px.scatter(
+    crimes_df_district_total,
+    x='Count_Per_100',
+    y='Population',
+    color=area_scale,
+    size='Count_Per_100',
+    color_discrete_map=area_colour_map,
+    height=500,
+)
+right.subheader(f"Crime Count Scaled per 100 Residents")
+right.plotly_chart(fig, use_container_width=True)
+st.divider()
+
+
 # By crime
-st.header("By Crime")
+st.header("Crime Statistics Displayed by Crime Category")
+st.write("This section shows the total number of crimes for each crime category per district.")
 
 # Figure container margins
 left, right = st.columns([0.55, 0.45])
@@ -71,13 +121,12 @@ fig = px.bar(
     x='Count_Per_100_Norm',
     y='Crime',
     color=area_scale,
-    category_orders={'Crime': crimes},
-    color_discrete_map=area_colour_map,
-    barmode='relative',
+    category_orders={area_scale: areas, 'Crime': crimes},
+    color_discrete_sequence=area_colours,
     height=600,
 )
 fig.update_layout(updatemenus=[{'pad': {'b': 5, 'r': 1}}])
-left.subheader(f"Relative Total Number of Crimes per {area_scale}")
+left.subheader(f"Crime Counts per Category Proportional to the Total for All {area_scale}s")
 left.plotly_chart(fig, use_container_width=True)
 
 # Bar chart with dropdown menu
@@ -85,7 +134,8 @@ fig = px.bar(
     crimes_df_total[crimes_df_total[area_scale] == areas[0]],
     x='Count_Per_100',
     y='Crime',
-    color_discrete_sequence=[area_colour_map[areas[0]]],
+    color=area_scale,
+    color_discrete_map=area_colour_map,
     text_auto='.2f',
     height=600,
 )
@@ -135,8 +185,9 @@ fig.update_layout(
             'borderpad': 5,
         },
     ],
+    showlegend=False,
 )
-right.subheader(f"Total Number of Crimes per {area_scale}")
+right.subheader(f"Crime Categories Ranked per {area_scale}")
 right.plotly_chart(fig, use_container_width=True)
 
 # Scatter plot
@@ -145,18 +196,34 @@ fig = px.scatter(
     x='Count_Per_100',
     y='Crime',
     color=area_scale,
-    category_orders={'Crime': crimes},
-    color_discrete_sequence=colours,
+    category_orders={area_scale: areas, 'Crime': crimes},
+    color_discrete_map=area_colour_map,
     range_x=[x_min, x_max],
     height=500,
 )
-st.subheader(f"Total Number of Crimes per {area_scale}")
+st.subheader(f"Total Number of Crimes per Category per {area_scale}")
 st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
 
 # By district
-st.header(f"By {area_scale}")
+st.header(f"Crime Statistics Displayed by {area_scale}")
+st.write("This section shows the total number of crimes in each district per crime category.")
+
+# Bar chart
+fig = px.bar(
+    crimes_df_district_total,
+    x='Count_Per_100',
+    y=area_scale,
+    color=area_scale,
+    category_orders={area_scale: areas, 'Crime': crimes},
+    color_discrete_map=area_colour_map,
+    text_auto='.2f',
+    height=500,
+)
+fig.update_layout(showlegend=False)
+st.subheader(f"{area_scale}s Ranked by Total Number of Crimes Across All Categories")
+st.plotly_chart(fig, use_container_width=True)
 
 # Figure container margins
 left, right = st.columns([0.55, 0.45])
@@ -172,13 +239,12 @@ fig = px.bar(
     x='Count_Per_100_Norm',
     y=area_scale,
     color='Crime',
-    category_orders={area_scale: areas},
-    color_discrete_map=colour_map,
-    barmode='relative',
+    category_orders={area_scale: areas, 'Crime': crimes},
+    color_discrete_sequence=crime_colours,
     height=550,
 )
 fig.update_layout(updatemenus=[{'pad': {'b': 5, 'r': 1}}])
-left.subheader(f"Relative Total Number of Crimes per {area_scale}")
+left.subheader(f"Crime Counts per {area_scale} Proportional to the Total for All Categories")
 left.plotly_chart(fig, use_container_width=True)
 
 # Bar chart with dropdown menu
@@ -186,7 +252,8 @@ fig = px.bar(
     crimes_df_total[crimes_df_total['Crime'] == crimes[0]],
     x='Count_Per_100',
     y=area_scale,
-    color_discrete_sequence=[colour_map[crimes[0]]],
+    color='Crime',
+    color_discrete_map=crime_colour_map,
     text_auto='.2f',
     height=550,
 )
@@ -203,7 +270,7 @@ dropdown = [
         'label': crime,
         'method': 'update',
     }
-    for crime, colour in colour_map.items()
+    for crime, colour in crime_colour_map.items()
 ]
 # Add dropdown menu to figure
 fig.update_layout(
@@ -236,8 +303,9 @@ fig.update_layout(
             'borderpad': 5,
         },
     ],
+    showlegend=False,
 )
-right.subheader(f"Total Number of Crimes per {area_scale}")
+right.subheader(f"{area_scale}s Ranked by Number of Crimes for Each Category")
 right.plotly_chart(fig, use_container_width=True)
 st.divider()
 
@@ -258,12 +326,11 @@ fig = px.bar(
     color=area_scale,
     animation_frame='Year',
     animation_group='Crime',
-    category_orders={'Crime': crimes},
-    color_discrete_sequence=colours,
-    barmode='relative',
+    category_orders={area_scale: areas, 'Crime': crimes},
+    color_discrete_map=area_colour_map,
     height=600,
 )
-st.subheader(f"Relative Total Number of Crimes per {area_scale} Over Time (per Year)")
+st.subheader(f"Crime Counts for Each Category Proportional to the Total for All {area_scale}s Over Time (per Year)")
 st.plotly_chart(fig, use_container_width=True)
 
 # Scatter plot over time
@@ -274,10 +341,10 @@ fig=px.scatter(
     color=area_scale,
     animation_frame='Year',
     animation_group='Crime',
-    category_orders={'Crime': crimes},
-    color_discrete_sequence=colours,
+    category_orders={area_scale: areas, 'Crime': crimes},
+    color_discrete_map=area_colour_map,
     range_x=[x_time_min, x_time_max],
     height=600,
 )
-st.subheader(f"Total Number of Crimes per {area_scale} Over Time (per Year)")
+st.subheader(f"Total Number of Crimes of Each Category per {area_scale} Over Time (per Year)")
 st.plotly_chart(fig, use_container_width=True)
