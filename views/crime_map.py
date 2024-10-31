@@ -24,7 +24,7 @@ filtered_data = crime_data[crime_data["Crime"] == initial_crime_type].copy()
 # Ensure 'District' column matches the 'DISTRICT' property in GeoJSON
 filtered_data.loc[:, 'District'] = filtered_data['District'].str.upper()
 
-catpuccin_color_scale = [
+catppuccin_color_scale = [
     [0, PALETTE.latte.colors.blue.hex],
     [0.25, PALETTE.latte.colors.green.hex],
     [0.5, PALETTE.latte.colors.yellow.hex],
@@ -39,11 +39,12 @@ fig = px.choropleth_mapbox(
     locations="District",
     featureidkey="properties.DISTRICT",
     color="Count_Per_100",
-    color_continuous_scale=catpuccin_color_scale,
+    color_continuous_scale=catppuccin_color_scale,
     mapbox_style="carto-positron",
     zoom=8,
     center={"lat": -31.9505, "lon": 115.8605},  # Perth's coordinates
     opacity=0.6,
+    height=800,
     hover_data={
         "District": True,
         "Region": True,
@@ -65,21 +66,37 @@ dropdown_buttons = [
 
 # Add dropdown to the layout
 fig.update_layout(
-    updatemenus=[
+    updatemenus = [
         {
-            "buttons": dropdown_buttons,
-            "direction": "down",
-            "pad": {"r": 10, "t": 10},
-            "showactive": True,
-            "x": 0.1,
-            "xanchor": "left",
-            "y": 1.05,
-            "yanchor": "top"
-        }
+            'buttons': dropdown_buttons,
+            'direction': 'down',
+            'showactive': True,
+            'x': 0,
+            'xanchor': 'left',
+            'y': 1,
+            'yanchor': 'bottom',
+            'font': {'size': 12},
+            'pad': {'b': 5, 'l': 180},
+        },
     ],
-    margin={"r": 0, "t": 50, "l": 0, "b": 0},
-    title_x=0.5,
-    title="Interactive Crime Map by Type",
+    annotations = [
+        {
+            'text': 'Select Crime Category:',
+            'x': 0,
+            'xanchor': 'left',
+            'xref': 'paper',
+            'y': 1,
+            'yanchor': 'bottom',
+            'yref': 'paper',
+            'yshift': 7,
+            'showarrow': False,
+            'font': {'size': 16},
+            'borderpad': 5,
+        },
+    ],
 )
-# Display the map in Streamlit
-st.plotly_chart(fig, use_container_width=True)
+
+# Show the figure
+st.header("Interactive Map of WA Police Districts")
+st.subheader("Total Number of Crimes in WA per District (2007-2024)")
+st.plotly_chart(fig, use_container_width = True)

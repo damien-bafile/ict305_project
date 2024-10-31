@@ -17,7 +17,6 @@ file_path = 'assets'
 sheet_name = 'Data'
 
 # --- DATA SETUP ---
-folder_path = "./assets/"
 file_names = [
     "data.xlsx",
     "WAPoliceForceDistrictboundaries(WAPOL-002).geojson",
@@ -27,13 +26,14 @@ file_names = [
     "2021Census_G01_WA_SA3.csv",
     "2021Census_G01_WA_SAL.csv",
 ]
+
 # Geographies and year for ABS data to download
 abs_file_path = 'ABS_Data'
 geographies = ['LGA', 'SA3', 'SAL']
 year = 2021
 
 # Create a zip file object containing the dataset ready for download
-zip_file_object = zip_dataset(folder_path, file_names)
+zip_file_object = zip_dataset(file_path, file_names)
 
 # --- PAGE SETUP ---
 # Set the page title and layout to wide
@@ -43,7 +43,7 @@ st.set_page_config(page_title="ICT305 Machine Masters", layout="wide")
 about_page = create_page(
     page_path="views/landing_page.py",
     title="About Project",
-    icon="🐷",
+    icon="👮",
     default=True,
 )
 
@@ -51,13 +51,13 @@ about_page = create_page(
 crime_by_district = create_page(
     page_path="views/crime_by_district.py",
     title="Crime by District",
-    icon="🗺️",
-
+    icon="🏢",
 )
 
 crime_map = create_page(
     page_path="views/crime_map.py",
     title="Crime Map",
+    icon="🗺️",
 )
 
 crime_over_time = create_page(
@@ -68,17 +68,25 @@ crime_over_time = create_page(
 metro_vs_regional = create_page(
     page_path="views/metro_vs_regional.py",
     title="Metro vs Regional Crime",
+    icon="👨‍🌾",
 )
 
 crime_total_wa = create_page(
     page_path="views/crime_total_wa.py",
     title="Total Crime in WA",
+    icon="📊",
 )
 
 about_us_page = create_page(
     page_path="views/about_us.py",
     title="About Us",
     icon="👨‍💻",
+)
+
+references_page = create_page(
+    page_path="views/references.py",
+    title="References",
+    icon="📚",
 )
 
 # Load the pages into the navigation sidebar sorted by category
@@ -92,6 +100,7 @@ pg = st.navigation(
             metro_vs_regional,
             crime_total_wa,
         ],
+        "References": [references_page],
     }
 )
 
