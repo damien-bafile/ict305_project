@@ -68,7 +68,6 @@ fig = px.choropleth_mapbox(
         'Population': True,
         'Count_Per_100': True
     },
-    width=700,
     height=750,
 )
 
@@ -89,21 +88,21 @@ fig.update_layout(
             'buttons': dropdown_buttons,
             'direction': 'down',
             'showactive': True,
-            'x': 1,
-            'xanchor': 'right',
+            'x': 0,
+            'xanchor': 'left',
             'y': 1,
             'yanchor': 'bottom',
             'font': {'size': 12},
-            'pad': {'b': 5, 'r': 1},
+            'pad': {'b': 5, 'l': 180},
         },
     ],
     annotations = [
         {
             'text': 'Select Crime Category:',
-            'x': 1,
-            'xanchor': 'right',
+            'x': 0,
+            'xanchor': 'left',
             'xref': 'paper',
-            'xshift': -270,
+            #'xshift': -270,
             'y': 1,
             'yanchor': 'bottom',
             'yref': 'paper',
