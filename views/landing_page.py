@@ -7,7 +7,7 @@ from forms.contact import contact_form
 @st.dialog("Contact Me")
 def show_contact_form():
     contact_form()
-
+# TODO: Add some real text to the front page
 
 l_margin, centre, r_margin = st.columns([0.1, 0.8, 0.1])
 
