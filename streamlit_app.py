@@ -40,7 +40,7 @@ zip_file_object = zip_dataset(file_path, file_names)
 st.set_page_config(page_title="ICT305 Machine Masters", layout="wide")
 
 # Create a navigation sidebar with the following pages, using descriptive names
-about_page = create_page(
+landing_page = create_page(
     page_path="views/landing_page.py",
     title="About Project",
     icon="👮",
@@ -92,7 +92,7 @@ references_page = create_page(
 # Load the pages into the navigation sidebar sorted by category
 pg = st.navigation(
     {
-        "Info": [about_page, about_us_page],
+        "Info": [landing_page],
         "Visualizations": [
             crime_by_district,
             crime_map,
@@ -100,7 +100,7 @@ pg = st.navigation(
             metro_vs_regional,
             crime_total_wa,
         ],
-        "References": [references_page],
+        "Additional": [references_page, about_us_page],
     }
 )
 
