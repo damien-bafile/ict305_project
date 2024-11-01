@@ -6,7 +6,7 @@ import os
 import pandas as pd
 from catppuccin import PALETTE
 
-from helpers.CrimeData import downloadGeoJSON
+\from helpers.CrimeData import downloadGeoJSON
 from helpers.FileIO import *
 
 # Load the GeoJSON file for suburbs
@@ -23,6 +23,7 @@ geojson_data_suburbs = readData(geojson_file_path)
 csv_file_path = filePath('CSVs', file_path=file_path)
 crime_file_path = filePath('data_All_Crimes_Totals_Sorted.csv', file_path=csv_file_path)
 crime_data = readData(crime_file_path)
+
 
 # Extract unique crime types
 crime_types = crime_data["Crime"].unique()
