@@ -9,10 +9,11 @@ Eren Stannard - 34189185
 
 
 import os
-import pandas as pd
 import requests
 import json
 import geojson
+import pandas as pd
+import geopandas as gpd
 from bs4 import BeautifulSoup
 from time import time
 
@@ -186,8 +187,14 @@ def readData(filename, file_path = '', sheet_name = 0, skiprows = None, na_value
             case '.geojson':
                 with open(filename, 'r') as file:
                     data = geojson.load(file)
+            case '.shp':
+                data = gpd.read_file(filename)
             case _:
                 print(f"Error: Invalid file type '{ext}'.\n")
+                
+        if ext in ['.csv', '.xlsx']:
+            if 'Period' in data.columns:
+                    data['Period'] = pd.to_datetime(data['Period'])
 
     else:
         print(f"Error: Could not open file '{filename}'.\n")

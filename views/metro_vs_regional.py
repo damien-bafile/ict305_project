@@ -24,9 +24,6 @@ st.title("Metro vs Regional Crime")
 # Figure container margins
 _, centre, _ = st.columns([0.05, 0.9, 0.05])
 
-# Colour palette
-colours = [colour.hex for colour in PALETTE.latte.colors]
-
 # Load the data from the Excel file (this assumes you have the file in the same directory)
 filename = 'data_Processed.csv'
 file_path = 'assets'
@@ -44,6 +41,7 @@ period_range = [crimes_df['Period'].min(), crimes_df['Period'].max()]
 st.caption(f"From {period_range[0]} to {period_range[1]}.")
 
 crimes_df_total = getCrimeCounts(crimes_df, area_scale=area_scale, ascending=True)
+crimes_df_region_total = getCrimeCounts(crimes_df.drop(columns='Crime'), area_scale=area_scale, ascending=True)
 crimes_df_over_time = getCrimeCounts(crimes_df, group_by=['Year'], area_scale=area_scale, sort=False)
 crimes_df_over_time_rank = crimes_df_over_time.sort_values(by=['Year', 'Count_Per_100'], ascending=[True, True])
 
@@ -57,12 +55,34 @@ crimes = crimes_df_total[['Crime', 'Count_Per_100']].groupby(
 x_min = crimes_df_total['Count_Per_100'].min()
 x_max = crimes_df_total['Count_Per_100'].max()
 
-colour_map = dict(zip(crimes, colours[:len(crimes)]))
-area_colour_map = dict(zip(areas, colours[:len(areas)]))
+x_min_time = crimes_df_over_time['Count_Per_100'].min()
+x_max_time = crimes_df_over_time['Count_Per_100'].max()
+
+# Colour palette
+colours = [colour.hex for colour in PALETTE.latte.colors][:14]
+colours = sorted(colours)
+area_colours = [colours[0], colours[-1]]
+area_colour_map = dict(zip(areas, area_colours))
 
 
 # All time
 st.header("All Time")
+
+# Bar chart
+fig = px.bar(
+    crimes_df_region_total,
+    x='Count_Per_100',
+    y=area_scale,
+    color=area_scale,
+    category_orders={area_scale: areas},
+    color_discrete_map=area_colour_map,
+    barmode='relative',
+    text_auto='.2f',
+    height=200,
+)
+fig.update_layout(showlegend=False)
+st.subheader(f"Total Number of Crimes per {area_scale} for All Crime")
+st.plotly_chart(fig, use_container_width=True)
 
 # Figure container margins
 left, right = st.columns([0.55, 0.45])
@@ -79,8 +99,7 @@ fig = px.bar(
     y='Crime',
     color=area_scale,
     category_orders={'Crime': crimes},
-    color_discrete_sequence=[colours[0], colours[10]],
-    barmode='relative',
+    color_discrete_map=area_colour_map,
     height=600,
 )
 fig.update_layout(updatemenus=[{'pad': {'b': 5, 'r': 1}}])
@@ -92,7 +111,8 @@ fig = px.bar(
     crimes_df_total[crimes_df_total[area_scale] == areas[0]],
     x='Count_Per_100',
     y='Crime',
-    color_discrete_sequence=[colours[0], colours[10]],
+    color=area_scale,
+    color_discrete_sequence=area_colours,
     text_auto='.2f',
     height=600,
 )
@@ -109,7 +129,7 @@ dropdown = [
         'label': area,
         'method': 'update',
     }
-    for area, colour in zip(areas, [colours[0], colours[10]])
+    for area, colour in area_colour_map.items()
 ]
 # Add dropdown menu to figure
 fig.update_layout(
@@ -142,6 +162,7 @@ fig.update_layout(
             'borderpad': 5,
         },
     ],
+    showlegend=False,
 )
 right.subheader(f"Total Number of Crimes per {area_scale}")
 right.plotly_chart(fig, use_container_width=True)
@@ -162,11 +183,11 @@ fig = px.bar(
     x='Count_Per_100',
     y='Crime',
     color=area_scale,
+    facet_col=area_scale,
     category_orders={'Crime': crimes},
     animation_frame='Year',
     animation_group='Crime',
-    color_discrete_sequence=[colours[0], colours[10]],
-    barmode='group',
+    color_discrete_map=area_colour_map,
     height=600,
 )
 st.subheader(f"Total Number of Crimes in WA per {area_scale} Over Time (per Year)")
@@ -181,8 +202,7 @@ fig = px.bar(
     category_orders={'Crime': crimes},
     animation_frame='Year',
     animation_group='Crime',
-    color_discrete_sequence=[colours[0], colours[10]],
-    barmode='relative',
+    color_discrete_map=area_colour_map,
     height=600,
 )
 st.subheader(f"Relative Total Number of Crimes in WA per {area_scale} Over Time (per Year)")

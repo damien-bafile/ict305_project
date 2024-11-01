@@ -33,6 +33,7 @@ filename = 'data_Processed.csv'
 file_path = 'assets'
 
 crimes_df = load_data(filename, file_path=file_path)
+print(crimes_df.dtypes)
 
 crimes_df['State'] = crimes_df['State'].apply(lambda x: x.title())
 crimes_df['Region'] = crimes_df['Region'].apply(lambda x: x.rsplit(maxsplit=1)[0].title())

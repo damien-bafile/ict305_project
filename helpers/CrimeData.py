@@ -11,54 +11,143 @@ Eren Stannard - 34189185
 # Import libraries
 
 import os
+import requests
+
+import geopandas as gpd
 import numpy as np
 import pandas as pd
-import requests
+
 from bs4 import SoupStrainer
-from datetime import datetime
 from calendar import timegm
+from datetime import datetime
+from io import BytesIO
 from time import time
+from zipfile import ZipFile
 
 from helpers.FileIO import *
 from helpers.PopulationData import getPopulationData
 
 
-# Function for checking for dataset updates
+def checkDatasetUpdate(filename, processed_filename=None):
+    
+    """
+    Checks for dataset updates by comparing dataset file's last modification time with last update
+    time on dataset source webpage.
 
-def checkDatasetUpdate(filename, processed_filename = None):
+    Args:
+        filename (str): Path to dataset file.
+        processed_filename (str, optional): Path to processed data file. Defaults to None.
+
+    Returns:
+        (processing_update, download_update) (tuple[bool, bool]): Flags if data must be processed
+        to new file/s and if new dataset file must be downloaded, respectively.
+    """
 
     t0 = time()
     
+    # WAPOL Dataset page
     url = "https://www.wa.gov.au/organisation/western-australia-police-force/crime-statistics#/start"
 
+    # True if dataset file needs to be downloaded
     download_update = not os.path.isfile(filename)
 
     if not download_update:
+        
+        # Time file was last modified
         file_mtime = os.path.getmtime(filename)
-        soup = getHTMLData(url, parse_only = SoupStrainer(class_ = 'page-reviewed'))
-        last_update = timegm(datetime.timetuple(datetime.fromisoformat(soup.time['datetime'])))
+        
+        # Time WAPOL Dataset page was last updated
+        soup = getHTMLData(url, parse_only = SoupStrainer(class_='page-reviewed'))
+        last_update_time = timegm(datetime.timetuple(datetime.fromisoformat(soup.time['datetime'])))
 
-        # True if webpage has been updated since last dataset download
-        download_update = last_update > file_mtime
+        # True if webpage has been updated more recently than file was last modified
+        download_update = last_update_time > file_mtime
         
+    # True if data needs to be processed again
     processing_update = download_update
-        
+    
     if not processing_update:
+        
+        # True if original dataset file is more recent than processed data files
         processing_update = checkFileUpdate(
             filename,
-            processed_filename = processed_filename,
+            processed_filename=processed_filename,
         )
 
     t1 = time()
+    
+    # Print time taken for function to run
     print("checkDatasetUpdate(): %.3fs" % (t1 - t0))
 
-    return processing_update, download_update
+    # Return whether or not data needs to be re-processed and downloaded
+    return (processing_update, download_update)
 
 
-# Function for downloading crime dataset
+def downloadGeoJSON(district_file_path='WAPOL_Districts', file_path='assets'):
+    
+    """
+    Downloads GeoJSON file containing WAPOL district boundaries by first downloading Shapefile data
+    and converting it to a GeoJSON file.
+
+    Args:
+        district_file_path (str, optional): Path to WAPOL district folder. Defaults to 'WAPOL_Districts'
+        file_path (str, optional): Path to directory containing district_file_path. Defaults to 'assets'.
+
+    Returns:
+        geojson_path (str): Path to GeoJSON file.
+    """
+    
+    # Download ZIP file
+    url = (
+        "https://catalogue.data.wa.gov.au/dataset/5a3b0c1d-37f8-45b8-bc67-91ea6f804354/resource/"
+        "1526416a-c03e-400b-b7b6-9f126270ef8f/download/policedistricts.zip"
+    )
+
+    response = requests.get(url)
+    
+    # File paths
+    district_file_path = filePath(district_file_path, file_path=file_path)
+    shp_path = None
+    geojson_path = None
+    
+    
+    
+    # Extract ZIP file contents
+    with ZipFile(BytesIO(response.content)) as z:
+        z.extractall(district_file_path)
+    
+    # Load Shapefile
+    for f in z.namelist():
+        if f.endswith('.shp'):
+            shp_path = filePath(f, file_path=district_file_path)
+            shp_data = readData(shp_path)
+            break
+    
+    # Save Shapefile as GeoJSON
+    if shp_path:
+        root, _ = os.path.splitext(shp_path)
+        geojson_path = f'{root}.geojson'
+        shp_data.to_file(geojson_path, driver='GeoJSON')
+    
+    # Return GeoJSON path
+    return geojson_path
+
+
 
 def downloadDataset(filename, file_path = 'assets', check_first = True):
+    
+    """
+    Downloads crime dataset from WAPOL website.
 
+    Args:
+        filename (str): Name of crime dataset file.
+        file_path (str, optional): Path to directory containing filename. Defaults to 'assets'.
+        check_first (bool, optional): Flag to check if most recent file already exists. Defaults to True.
+
+    Returns:
+        download_update (bool): Flag if dataset file was downloaded or not.
+    """
+    
     t0 = time()
     
     url = "https://www.wa.gov.au/media/48429/download?inline?inline="
@@ -75,6 +164,7 @@ def downloadDataset(filename, file_path = 'assets', check_first = True):
         response = requests.get(url)
         with open(filename, 'wb') as f:
             f.write(response.content)
+        downloadGeoJSON()
     else:
         print("Dataset already downloaded.")
 

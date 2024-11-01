@@ -30,6 +30,10 @@ with centre:
         <H1>Case Summary</H1>
 This website aims to enhance crime management by developing an interactive data visualization platform that provides accessible insights into crime trends and patterns across metropolitan and regional areas.  
 
+    # --- EVEN MORE INFO ---
+    st.write("\n")
+    st.subheader("More Info", anchor=False)
+    st.write("""
 <H1>Problem Definition</H1>
 Crime data is often presented in a static, dense format, making it difficult for key stakeholders – such as policymakers, law enforcement, and the public. Hence, the absence of a dynamic, user-friendly visualization tool that allows users to compare crime trends between metropolitan and regional areas, highlighting patterns and areas of concern in an actionable way. 
 
@@ -44,4 +48,4 @@ The platform is designed to cater to a wide range of stakeholders, including Pol
 
 <H1>Dataset Summary</H1> 
 The project uses crime data from the Western Australia Police Force, covering the period from January 2007 to June 2024. 
-        """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)

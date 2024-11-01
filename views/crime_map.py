@@ -2,17 +2,28 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import json
+import os
 import pandas as pd
 from catppuccin import PALETTE
 
-# Load the GeoJSON file for suburbs
-geojson_file_path = "assets/WAPoliceForceDistrictboundaries(WAPOL-002).geojson"
+\from helpers.CrimeData import downloadGeoJSON
+from helpers.FileIO import *
 
-with open(geojson_file_path) as f:
-    geojson_data_suburbs = json.load(f)
+# Load the GeoJSON file for suburbs
+file_path = 'assets'
+district_file_path = filePath('WAPOL_Districts', file_path=file_path)
+geojson_file_path = filePath('Police_Districts.geojson', file_path=district_file_path)
+
+if not os.path.isfile(geojson_file_path):
+    downloadGeoJSON(district_file_path)
+
+geojson_data_suburbs = readData(geojson_file_path)
 
 # Load the crime data from the CSV
-crime_data = pd.read_csv("assets/CSVs/data_All_Crimes_Totals_Sorted.csv")
+csv_file_path = filePath('CSVs', file_path=file_path)
+crime_file_path = filePath('data_All_Crimes_Totals_Sorted.csv', file_path=csv_file_path)
+crime_data = readData(crime_file_path)
+
 
 # Extract unique crime types
 crime_types = crime_data["Crime"].unique()
