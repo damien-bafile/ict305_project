@@ -50,7 +50,7 @@ landing_page = create_page(
 # TODO: Using more descriptive names for the pages
 crime_by_district = create_page(
     page_path="views/crime_by_district.py",
-    title="Crime by District",
+    title="Crime per District",
     icon="🏢",
 )
 

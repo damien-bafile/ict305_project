@@ -45,7 +45,7 @@ crimes_df_region_total = getCrimeCounts(crimes_df.drop(columns='Crime'), area_sc
 crimes_df_over_time = getCrimeCounts(crimes_df, group_by=['Year'], area_scale=area_scale, sort=False)
 crimes_df_over_time_rank = crimes_df_over_time.sort_values(by=['Year', 'Count_Per_100'], ascending=[True, True])
 
-areas = crimes_df[area_scale].unique()
+areas = crimes_df[area_scale].unique()[::-1]
 crimes = crimes_df_total[['Crime', 'Count_Per_100']].groupby(
     by='Crime',
     observed=False,
@@ -81,11 +81,11 @@ fig = px.bar(
     height=200,
 )
 fig.update_layout(showlegend=False)
-st.subheader(f"Total Number of Crimes per {area_scale} for All Crime")
+st.subheader(f"WA {area_scale}s Ranked by Total Number of Crimes Across All Categories")
 st.plotly_chart(fig, use_container_width=True)
 
 # Figure container margins
-left, right = st.columns([0.55, 0.45])
+left, right = st.columns([0.5, 0.5])
 
 crimes_df_total['Count_Per_100_Norm'] = crimes_df_total[['Crime', 'Count_Per_100', area_scale]].groupby(
     'Crime',
@@ -103,7 +103,7 @@ fig = px.bar(
     height=600,
 )
 fig.update_layout(updatemenus=[{'pad': {'b': 5, 'r': 1}}])
-left.subheader(f"Relative Total Number of Crimes per {area_scale}")
+left.subheader(f"Crime Counts per Category Proportional to the Total for All {area_scale}s")
 left.plotly_chart(fig, use_container_width=True)
 
 # Bar chart with dropdown menu
@@ -164,7 +164,7 @@ fig.update_layout(
     ],
     showlegend=False,
 )
-right.subheader(f"Total Number of Crimes per {area_scale}")
+right.subheader(f"Crime Categories Ranked by Frequency per {area_scale}")
 right.plotly_chart(fig, use_container_width=True)
 st.divider()
 
@@ -205,5 +205,5 @@ fig = px.bar(
     color_discrete_map=area_colour_map,
     height=600,
 )
-st.subheader(f"Relative Total Number of Crimes in WA per {area_scale} Over Time (per Year)")
+st.subheader(f"Crime Counts per {area_scale} Proportional to the Total for All Categories Over Time (per Year)")
 st.plotly_chart(fig, use_container_width=True)

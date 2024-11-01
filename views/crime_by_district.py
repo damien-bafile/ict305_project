@@ -53,9 +53,7 @@ crimes = crimes_df_total['Crime'].unique()[::-1]
 # Colour palette
 colours = [colour.hex for colour in PALETTE.latte.colors]
 crime_colours = colours[:len(crimes)]
-#crime_colours = sorted(crime_colours)
 area_colours = colours[:len(areas)]
-#area_colours = sorted(area_colours)
 crime_colour_map = dict(zip(crimes, crime_colours))
 area_colour_map = dict(zip(areas, area_colours))
 
@@ -69,7 +67,7 @@ x_time_max = crimes_df_over_time['Count_Per_100'].max()
 st.header("Crime Count Over District Population")
 st.write(
     "The scatter plot illustrates the relationship between the amount of crime in a district "
-    "and the district's population."
+    "(for all time) and the district's population."
 )
 
 # Figure container margins
@@ -98,17 +96,17 @@ fig = px.scatter(
     color_discrete_map=area_colour_map,
     height=500,
 )
-right.subheader(f"Crime Count Scaled per 100 Residents")
+right.subheader("Crime Count Scaled per 100 Residents")
 right.plotly_chart(fig, use_container_width=True)
 st.divider()
 
 
 # By crime
 st.header("Crime Statistics Displayed by Crime Category")
-st.write("This section shows the total number of crimes for each crime category per district.")
+st.write("This section shows the total number of crimes per category for each district.")
 
 # Figure container margins
-left, right = st.columns([0.55, 0.45])
+left, right = st.columns([0.5, 0.5])
 
 crimes_df_total['Count_Per_100_Norm'] = crimes_df_total[['Crime', 'Count_Per_100', area_scale]].groupby(
     'Crime',
@@ -187,7 +185,7 @@ fig.update_layout(
     ],
     showlegend=False,
 )
-right.subheader(f"Crime Categories Ranked per {area_scale}")
+right.subheader(f"Crime Categories Ranked by Frequency per {area_scale}")
 right.plotly_chart(fig, use_container_width=True)
 
 # Scatter plot
@@ -201,14 +199,14 @@ fig = px.scatter(
     range_x=[x_min, x_max],
     height=500,
 )
-st.subheader(f"Total Number of Crimes per Category per {area_scale}")
+st.subheader(f"Total Number of Crimes per Category for Each {area_scale}")
 st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
 
 # By district
 st.header(f"Crime Statistics Displayed by {area_scale}")
-st.write("This section shows the total number of crimes in each district per crime category.")
+st.write("This section shows the total number of crimes per district for each crime category.")
 
 # Bar chart
 fig = px.bar(
@@ -244,7 +242,7 @@ fig = px.bar(
     height=550,
 )
 fig.update_layout(updatemenus=[{'pad': {'b': 5, 'r': 1}}])
-left.subheader(f"Crime Counts per {area_scale} Proportional to the Total for All Categories")
+left.subheader(f"Crime Count Totals for Each {area_scale} Proportional to the Total for All Categories")
 left.plotly_chart(fig, use_container_width=True)
 
 # Bar chart with dropdown menu
@@ -346,5 +344,5 @@ fig=px.scatter(
     range_x=[x_time_min, x_time_max],
     height=600,
 )
-st.subheader(f"Total Number of Crimes of Each Category per {area_scale} Over Time (per Year)")
+st.subheader(f"Total Number of Crimes per Category for Each {area_scale} Over Time (per Year)")
 st.plotly_chart(fig, use_container_width=True)

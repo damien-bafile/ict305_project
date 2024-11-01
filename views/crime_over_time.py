@@ -33,8 +33,9 @@ filename = 'data_Processed.csv'
 file_path = 'assets'
 
 crimes_df = load_data(filename, file_path=file_path)
-print(crimes_df.dtypes)
 
+
+# Rename area names
 crimes_df['State'] = crimes_df['State'].apply(lambda x: x.title())
 crimes_df['Region'] = crimes_df['Region'].apply(lambda x: x.rsplit(maxsplit=1)[0].title())
 crimes_df['District'] = crimes_df['District'].apply(lambda x: x.rsplit(maxsplit=1)[0].title())
@@ -60,6 +61,7 @@ crimes_df_wa_per_period = getCrimeCounts(crimes_df, group_by=['Period'], area_sc
 crimes = crimes_df_wa['Crime'].unique()[::-1]
 crime_colour_map = dict(zip(crimes, colours[:len(crimes)]))
 
+
 # Line plot (year)
 fig = px.line(
     crimes_df_wa_total,
@@ -73,48 +75,37 @@ fig = px.line(
         'Count_Per_100': True,
     },
 )
-st.subheader("Total Number of Crimes in WA Over Time (per Year) for All Crime")
+st.subheader("Total Number of Crimes in WA Across All Categories Over Time (per Year)")
 st.plotly_chart(fig, use_container_width=True)
 
-# Line plot (year)
-fig = px.line(
-    crimes_df_wa_per_year,
-    x='Year',
-    y='Count_Per_100',
-    color='Crime',
-    color_discrete_sequence=colours,
-    range_x=year_range,
-    hover_data={
-        'State': True,
-        'Crime': True,
-        'Year': True,
-        'Count_Per_100': True,
-    },
-    height=550,
-)
-st.subheader("Total Number of Crimes in WA Over Time (per Year)")
-st.write("Select or deselect crime categories in legend to restrict display. Double click to isolate a single option.")
-st.plotly_chart(fig, use_container_width=True)
+st.divider()
 
-# Line plot (period)
-fig = px.line(
-    crimes_df_wa_per_period,
-    x='Period',
-    y='Count_Per_100',
-    color='Crime',
-    color_discrete_sequence=colours,
-    range_x=period_range,
-    hover_data={
-        'State': True,
-        'Crime': True,
-        'Period': True,
-        'Count_Per_100': True,
-    },
-    height=550,
-)
-st.subheader(f"Total Number of Crimes in WA Over Time (per Period)")
-st.write("Select or deselect crime categories in legend to restrict display. Double click to isolate a single option.")
-st.plotly_chart(fig, use_container_width=True)
+
+# Line plots (year and period)
+for time_scale_df, time_scale, time_scale_range in zip(
+        [crimes_df_wa_per_year, crimes_df_wa_per_period],
+        ['Year', 'Period'],
+        [year_range, period_range],
+):
+    fig = px.line(
+        time_scale_df,
+        x=time_scale,
+        y='Count_Per_100',
+        color='Crime',
+        color_discrete_sequence=colours,
+        range_x=time_scale_range,
+        hover_data={
+            'State': True,
+            'Crime': True,
+            time_scale: True,
+            'Count_Per_100': True,
+        },
+        height=550,
+    )
+    st.subheader(f"Total Number of Crimes in WA per Category Over Time (per {time_scale})")
+    st.write("Select or deselect crime categories in legend to restrict display. Double click to isolate a single option.")
+    st.plotly_chart(fig, use_container_width=True)
+
 st.divider()
 
 
@@ -137,83 +128,59 @@ crimes_df_districts_total_per_period = getCrimeCounts(crimes_df.drop(columns='Cr
 districts = crimes_df_districts_total['District'].unique()[::-1]
 district_colour_map = dict(zip(districts, colours[:len(districts)]))
 
-# Line plot (year)
-fig = px.line(
-    crimes_df_districts_total_per_year,
-    x='Year',
-    y='Count_Per_100',
-    color='District',
-    color_discrete_sequence=colours,
-    range_x=year_range,
-    hover_data={
-        'District': True,
-        'Year': True,
-        'Count_Per_100': True,
-    },
-)
-st.subheader(f"Total Number of Crimes in WA per District Over Time (per Year)")
-st.write("Select or deselect district names in legend to restrict display. Double click to isolate a single option.")
-st.plotly_chart(fig, use_container_width=True)
 
-# Line plot (period)
-fig = px.line(
-    crimes_df_districts_total_per_period,
-    x='Period',
-    y='Count_Per_100',
-    color='District',
-    color_discrete_sequence=colours,
-    range_x=period_range,
-    hover_data={
-        'District': True,
-        'Period': True,
-        'Count_Per_100': True,
-    },
-)
-st.subheader(f"Total Number of Crimes in WA per District Over Time (per Period)")
-st.write("Select or deselect district names in legend to restrict display. Double click to isolate a single option.")
-st.plotly_chart(fig, use_container_width=True)
+
+# Line plots (year and period)
+for time_scale_df, time_scale, time_scale_range in zip(
+        [crimes_df_districts_total_per_year, crimes_df_districts_total_per_period],
+        ['Year', 'Period'],
+        [year_range, period_range],
+):
+    fig = px.line(
+        time_scale_df,
+        x=time_scale,
+        y='Count_Per_100',
+        color='District',
+        color_discrete_sequence=colours,
+        range_x=time_scale_range,
+        hover_data={
+            'District': True,
+            time_scale: True,
+            'Count_Per_100': True,
+        },
+        height=550,
+    )
+    st.subheader(f"Total Number of Crimes in WA per District Over Time (per {time_scale})")
+    st.write("Select or deselect district names in legend to restrict display. Double click to isolate a single option.")
+    st.plotly_chart(fig, use_container_width=True)
+
 st.divider()
 
 
 # District with highest crime rate
 st.header("District With the Highest Crime Rate")
 
-# Line plot (year)
-fig = px.line(
-    crimes_df_districts_per_year[crimes_df_districts_per_year['District'] == districts[0]],
-    x='Year',
-    y='Count_Per_100',
-    color='Crime',
-    color_discrete_sequence=colours,
-    range_x=year_range,
-    hover_data={
-        'District': True,
-        'Crime': True,
-        'Year': True,
-        'Count_Per_100': True,
-    },
-    height=550,
-)
-st.subheader(f"Total Number of Crimes in the {districts[0]} District Over Time (per Year)")
-st.write("Select or deselect crime categories in legend to restrict display. Double click to isolate a single option.")
-st.plotly_chart(fig, use_container_width=True)
-
-# Line plot (period)
-fig = px.line(
-    crimes_df_districts_per_period[crimes_df_districts_per_period['District'] == districts[0]],
-    x='Period',
-    y='Count_Per_100',
-    color='Crime',
-    color_discrete_sequence=colours,
-    range_x=period_range,
-    hover_data={
-        'District': True,
-        'Crime': True,
-        'Period': True,
-        'Count_Per_100': True,
-    },
-    height=550,
-)
-st.subheader(f"Total Number of Crimes in the {districts[0]} District Over Time (per Period)")
-st.write("Select or deselect crime categories in legend to restrict display. Double click to isolate a single option.")
-st.plotly_chart(fig, use_container_width=True)
+# Line plots (year and period)
+for time_scale_df, time_scale, time_scale_range in zip(
+        [crimes_df_districts_per_year, crimes_df_districts_per_period],
+        ['Year', 'Period'],
+        [year_range, period_range],
+):
+    fig = px.line(
+        time_scale_df[time_scale_df['District'] == districts[0]],
+        x=time_scale,
+        y='Count_Per_100',
+        color='Crime',
+        color_discrete_sequence=colours,
+        range_x=time_scale_range,
+        hover_data={
+            'District': True,
+            'Crime':True,
+            time_scale: True,
+            'Count_Per_100': True,
+        },
+        height=550,
+    )
+    st.subheader(f"Total Number of Crimes in the {districts[0]} District for Each Crime Category Over Time (per Year)")
+    st.write("Select or deselect crime categories in legend to restrict display. Double click to isolate a single option.")
+    st.plotly_chart(fig, use_container_width=True)

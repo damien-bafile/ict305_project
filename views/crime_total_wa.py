@@ -63,7 +63,7 @@ fig = px.bar(
     text_auto='.2f',
     height=600,
 )
-st.subheader(f"Total Number of Crimes in WA")
+st.subheader("Crime Categories Ranked By Frequency for All of WA")
 st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
@@ -107,5 +107,5 @@ buttons = [
     },
 ]
 fig.update_layout(updatemenus=[{'buttons': buttons}])
-st.subheader("Total Number of Crimes in WA Over Time (per Year) With Continuous Ranking")
+st.subheader("Crime Categories Continuously Ranked Over Time By Frequency for All of WA")
 st.plotly_chart(fig, use_container_width=True)
